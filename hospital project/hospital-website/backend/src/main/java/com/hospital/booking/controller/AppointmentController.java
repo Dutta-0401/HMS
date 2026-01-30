@@ -33,8 +33,9 @@ public class AppointmentController {
             @PathVariable String userId,
             @AuthenticationPrincipal UserDetails userDetails) {
         // Verify user is accessing their own appointments
+        // Return 404 instead of 403 to prevent user enumeration
         if (!userDetails.getUsername().equals(userId)) {
-            return ResponseEntity.status(403).build();
+            return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(appointmentService.getUserAppointments(userId));
     }

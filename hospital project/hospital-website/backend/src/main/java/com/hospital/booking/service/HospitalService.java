@@ -24,7 +24,7 @@ public class HospitalService {
 
     public HospitalDTO getHospitalById(String id) {
         Hospital hospital = hospitalRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Hospital not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Resource not found"));
         return toDTO(hospital);
     }
 

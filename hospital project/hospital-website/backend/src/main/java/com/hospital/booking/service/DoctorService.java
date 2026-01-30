@@ -3,9 +3,11 @@ package com.hospital.booking.service;
 import com.hospital.booking.dto.DoctorDTO;
 import com.hospital.booking.dto.SlotDTO;
 import com.hospital.booking.entity.Doctor;
+import com.hospital.booking.entity.Hospital;
 import com.hospital.booking.exception.ResourceNotFoundException;
 import com.hospital.booking.repository.AppointmentRepository;
 import com.hospital.booking.repository.DoctorRepository;
+import com.hospital.booking.repository.HospitalRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +23,7 @@ public class DoctorService {
 
     private final DoctorRepository doctorRepository;
     private final AppointmentRepository appointmentRepository;
+    private final HospitalRepository hospitalRepository;
 
     private static final String[] SLOT_TIMES = {"09:00", "10:00", "11:00", "12:00", "14:00", "15:00", "16:00"};
 
@@ -32,16 +35,34 @@ public class DoctorService {
 
     public DoctorDTO getDoctorById(String id) {
         Doctor doctor = doctorRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Doctor not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Resource not found"));
         return toDTO(doctor);
     }
 
     public List<SlotDTO> getDoctorSlots(String doctorId, String date) {
         // Validate doctor exists
         doctorRepository.findById(doctorId)
-                .orElseThrow(() -> new ResourceNotFoundException("Doctor not found with id: " + doctorId));
+                .orElseThrow(() -> new ResourceNotFoundException("Resource not found"));
 
-        String slotDate = date != null ? date : LocalDate.now().toString();
+        // Validate date format (YYYY-MM-DD) and reasonable range
+        String slotDate;
+        if (date != null) {
+            if (!date.matches("^\\d{4}-\\d{2}-\\d{2}$")) {
+                throw new IllegalArgumentException("Invalid date format");
+            }
+            try {
+                LocalDate parsedDate = LocalDate.parse(date);
+                // Only allow booking up to 90 days in advance
+                if (parsedDate.isBefore(LocalDate.now()) || parsedDate.isAfter(LocalDate.now().plusDays(90))) {
+                    throw new IllegalArgumentException("Date must be within next 90 days");
+                }
+                slotDate = date;
+            } catch (Exception e) {
+                throw new IllegalArgumentException("Invalid date");
+            }
+        } else {
+            slotDate = LocalDate.now().toString();
+        }
         
         // Get booked slots for this doctor on this date
         Set<String> bookedSlotIds = appointmentRepository.findByDoctorIdAndSlotDate(doctorId, slotDate)
@@ -66,6 +87,11 @@ public class DoctorService {
     }
 
     private DoctorDTO toDTO(Doctor doctor) {
+        // Fetch hospital name using hospitalId
+        String hospitalName = hospitalRepository.findById(doctor.getHospitalId())
+                .map(Hospital::getName)
+                .orElse("Unknown Hospital");
+
         return DoctorDTO.builder()
                 .id(doctor.getId())
                 .name(doctor.getName())
@@ -75,8 +101,8 @@ public class DoctorService {
                 .experience(doctor.getExperience())
                 .imageUrl(doctor.getImageUrl())
                 .bio(doctor.getBio())
-                .hospitalId(doctor.getHospital().getId())
-                .hospitalName(doctor.getHospital().getName())
+                .hospitalId(doctor.getHospitalId())
+                .hospitalName(hospitalName)
                 .build();
     }
 }

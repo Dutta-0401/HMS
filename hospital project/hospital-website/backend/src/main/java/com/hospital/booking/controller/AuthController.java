@@ -20,10 +20,11 @@ public class AuthController {
 
     @PostMapping("/send-otp")
     public ResponseEntity<Map<String, Object>> sendOtp(@Valid @RequestBody SendOtpRequest request) {
-        String devOtp = authService.sendOtp(request);
+        authService.sendOtp(request);
+        // OTP is sent via SMS/email service - never expose in response
         return ResponseEntity.ok(Map.of(
                 "ok", true,
-                "dev_otp", devOtp  // Remove in production
+                "message", "OTP sent successfully"
         ));
     }
 

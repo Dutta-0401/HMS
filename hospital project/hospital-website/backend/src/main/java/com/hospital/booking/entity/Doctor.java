@@ -1,15 +1,16 @@
 package com.hospital.booking.entity;
 
-import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.index.Indexed;
 
 import java.math.BigDecimal;
 
-@Entity
-@Table(name = "doctors")
+@Document(collection = "doctors")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -17,16 +18,13 @@ import java.math.BigDecimal;
 public class Doctor {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false)
+    @Indexed
     private String specialty;
 
-    @Column(nullable = false)
     private BigDecimal fee;
 
     private String qualification;
@@ -37,7 +35,6 @@ public class Doctor {
 
     private String bio;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "hospital_id", nullable = false)
-    private Hospital hospital;
+    @Indexed
+    private String hospitalId;
 }

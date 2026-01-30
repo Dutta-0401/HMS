@@ -5,45 +5,42 @@ spring:
   application:
     name: hospital-booking-api
   
-  # H2 Database (Development)
-  datasource:
-    url: jdbc:h2:mem:hospitaldb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-    driver-class-name: org.h2.Driver
-    username: sa
-    password: 
-  
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
-  
-  jpa:
-    hibernate:
-      ddl-auto: create-drop
-    show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
-    database-platform: org.hibernate.dialect.H2Dialect
+  # MongoDB Atlas Configuration - Use environment variables in production
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb+srv://dakshtegta78_db_user:project@cluster0.1oekb1f.mongodb.net/?appName=Cluster0}
+      database: ${MONGODB_DATABASE:hospitaldb}
+      auto-index-creation: true
 
-# JWT Configuration
+# JWT Configuration - MUST use strong secret in production via environment variable
 jwt:
-  secret: hospital-booking-secret-key-change-in-production-min-256-bits-required
-  expiration: 86400000  # 24 hours in milliseconds
+  secret: ${JWT_SECRET:hospital-booking-secret-key-change-in-production-min-256-bits-required-1234567890}
+  expiration: ${JWT_EXPIRATION:86400000}  # 24 hours in milliseconds
 
 # CORS Configuration
 cors:
-  allowed-origins: http://localhost:5173,http://localhost:3000
+  allowed-origins: ${CORS_ORIGINS:http://localhost:5173,http://localhost:3000}
 
-# Logging
+# Logging - Use INFO in production
 logging:
   level:
-    com.hospital: DEBUG
-    org.springframework.security: DEBUG
+    com.hospital: ${LOG_LEVEL:INFO}
+    org.springframework.data.mongodb: WARN
+    org.springframework.security: WARN
 
-# OpenAPI
+# OpenAPI - Disable in production via environment
 springdoc:
   api-docs:
     path: /api-docs
+    enabled: ${SWAGGER_ENABLED:true}
   swagger-ui:
     path: /swagger-ui.html
+    enabled: ${SWAGGER_ENABLED:true}
+
+# Twilio SMS Configuration
+twilio:
+  account-sid: ${TWILIO_ACCOUNT_SID:your_account_sid}
+  auth-token: ${TWILIO_AUTH_TOKEN:your_auth_token}
+  phone-number: ${TWILIO_PHONE_NUMBER:your_twilio_number}
+  verify-service-sid: ${TWILIO_VERIFY_SERVICE_SID:your_verify_service_sid}
+  country-code: ${TWILIO_COUNTRY_CODE:+91}
