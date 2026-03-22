@@ -1,338 +1,304 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { 
-  Phone, Shield, ArrowRight, ArrowLeft, CheckCircle, 
-  Loader2, Heart, AlertCircle, Smartphone
-} from 'lucide-react'
-import { sendOtp, verifyOtp } from '../services/auth'
+import { Mail, Lock, User, Phone, Loader2, AlertCircle, Eye, EyeOff, LogIn, UserPlus } from 'lucide-react'
+import { login, register } from '../services/auth'
 import { useNavigate } from 'react-router-dom'
 
-// OTP Input component
-function OtpInput({ length = 6, value, onChange }) {
-  const inputRefs = useRef([])
-
-  useEffect(() => {
-    inputRefs.current[0]?.focus()
-  }, [])
-
-  function handleChange(index, e) {
-    const val = e.target.value
-    if (!/^\d*$/.test(val)) return
-
-    const newOtp = value.split('')
-    newOtp[index] = val.slice(-1)
-    const newValue = newOtp.join('')
-    onChange(newValue)
-
-    // Move to next input
-    if (val && index < length - 1) {
-      inputRefs.current[index + 1]?.focus()
-    }
-  }
-
-  function handleKeyDown(index, e) {
-    if (e.key === 'Backspace' && !value[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus()
-    }
-  }
-
-  function handlePaste(e) {
-    e.preventDefault()
-    const pasted = e.clipboardData.getData('text').slice(0, length)
-    if (/^\d+$/.test(pasted)) {
-      onChange(pasted.padEnd(length, ''))
-      inputRefs.current[Math.min(pasted.length, length - 1)]?.focus()
-    }
-  }
-
-  return (
-    <div className="flex gap-2 justify-center">
-      {Array.from({ length }).map((_, i) => (
-        <input
-          key={i}
-          ref={el => inputRefs.current[i] = el}
-          type="text"
-          inputMode="numeric"
-          maxLength={1}
-          value={value[i] || ''}
-          onChange={e => handleChange(i, e)}
-          onKeyDown={e => handleKeyDown(i, e)}
-          onPaste={handlePaste}
-          className="w-12 h-14 text-center text-xl font-bold border-2 border-surface-200 
-                   rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-200 
-                   outline-none transition-all"
-        />
-      ))}
-    </div>
-  )
-}
-
 export default function Login() {
-  const [phone, setPhone] = useState('')
-  const [step, setStep] = useState('phone') // 'phone' | 'otp' | 'success'
-  const [devOtp, setDevOtp] = useState(null)
-  const [otp, setOtp] = useState('')
+  const [isLogin, setIsLogin] = useState(true)
+  const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const navigate = useNavigate()
 
-  async function onSend() {
-    if (!phone || phone.length < 10) {
-      setError('Please enter a valid phone number')
+  // Login form
+  const [loginData, setLoginData] = useState({
+    email: '',
+    password: ''
+  })
+
+  // Register form
+  const [registerData, setRegisterData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    phone: '',
+    role: 'PATIENT'
+  })
+
+  async function handleLogin(e) {
+    e.preventDefault()
+    
+    if (!loginData.email || !loginData.password) {
+      setError('Please fill in all fields')
       return
     }
+
     setLoading(true)
     setError(null)
+
     try {
-      const res = await sendOtp(phone)
-      if (res.dev_otp) setDevOtp(res.dev_otp)
-      setStep('otp')
+      await login(loginData.email, loginData.password)
+      navigate('/hospitals')
     } catch (err) {
-      setError('Failed to send OTP. Please try again.')
+      setError(err.message || 'Login failed')
     } finally {
       setLoading(false)
     }
   }
 
-  async function onVerify() {
+  async function handleRegister(e) {
+    e.preventDefault()
+    
+    if (!registerData.name || !registerData.email || !registerData.password || !registerData.phone) {
+      setError('Please fill in all required fields')
+      return
+    }
+
+    if (registerData.password.length < 6) {
+      setError('Password must be at least 6 characters')
+      return
+    }
+
     setLoading(true)
     setError(null)
+
     try {
-      const data = await verifyOtp(phone, otp || devOtp || '123456')
-      if (data.token) {
-        setStep('success')
-        setTimeout(() => navigate('/hospitals'), 1500)
-      } else {
-        setError('Invalid OTP. Please try again.')
-      }
+      await register(registerData)
+      navigate('/hospitals')
     } catch (err) {
-      setError('Verification failed. Please try again.')
+      setError(err.message || 'Registration failed')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center">
+    <div className="min-h-[80vh] flex items-center justify-center py-8">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md"
       >
         {/* Card */}
-        <div className="bg-white rounded-2xl shadow-soft-xl overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
           {/* Header */}
-          <div className="bg-gradient-to-r from-primary-500 to-secondary-500 p-8 text-white text-center">
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.2 }}
-              className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-4"
-            >
-              <Heart className="w-8 h-8" />
-            </motion.div>
-            <h1 className="font-display text-2xl font-bold">Welcome to CityHealth</h1>
-            <p className="text-white/80 mt-2">Sign in to book appointments with top doctors</p>
+          <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-8 text-white text-center">
+            <h1 className="text-2xl font-bold mb-2">Hospital Booking System</h1>
+            <p className="text-blue-100">{isLogin ? 'Sign in to your account' : 'Create a new account'}</p>
           </div>
 
           {/* Content */}
           <div className="p-8">
             <AnimatePresence mode="wait">
-              {step === 'phone' && (
+              {/* Error Alert */}
+              {error && (
                 <motion.div
-                  key="phone"
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm mb-6"
+                >
+                  <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                  <span>{error}</span>
+                </motion.div>
+              )}
+
+              {isLogin ? (
+                // LOGIN FORM
+                <motion.form
+                  key="login"
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 20 }}
+                  onSubmit={handleLogin}
+                  className="space-y-4"
                 >
-                  <div className="text-center mb-6">
-                    <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center mx-auto mb-3">
-                      <Phone className="w-6 h-6 text-primary-600" />
+                  {/* Email */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+                      <input
+                        type="email"
+                        value={loginData.email}
+                        onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
+                        placeholder="your@email.com"
+                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                      />
                     </div>
-                    <h2 className="font-display text-lg font-bold text-slate-800">Enter Phone Number</h2>
-                    <p className="text-sm text-slate-500">We'll send you a verification code</p>
                   </div>
 
-                  <div className="relative mb-6">
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2 
-                                  text-slate-500 border-r border-surface-200 pr-3">
-                      <span className="text-lg">🇮🇳</span>
-                      <span className="font-medium">+91</span>
-                    </div>
-                    <input
-                      type="tel"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                      placeholder="Enter 10-digit number"
-                      className="w-full pl-24 pr-4 py-4 border-2 border-surface-200 rounded-xl 
-                               focus:border-primary-500 focus:ring-2 focus:ring-primary-200 
-                               outline-none transition-all text-lg"
-                    />
-                  </div>
-
-                  <AnimatePresence>
-                    {error && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        className="flex items-center gap-2 p-3 bg-red-50 rounded-xl text-red-600 text-sm mb-4"
+                  {/* Password */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        value={loginData.password}
+                        onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
+                        placeholder="••••••••"
+                        className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
                       >
-                        <AlertCircle className="w-4 h-4" />
-                        {error}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                        {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      </button>
+                    </div>
+                  </div>
 
+                  {/* Login Button */}
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    onClick={onSend}
-                    disabled={loading || phone.length < 10}
-                    className="w-full py-4 bg-gradient-to-r from-primary-500 to-primary-600 
-                              text-white rounded-xl font-semibold shadow-glow 
-                              disabled:opacity-50 disabled:cursor-not-allowed
-                              flex items-center justify-center gap-2"
+                    type="submit"
+                    disabled={loading}
+                    className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
                     {loading ? (
                       <>
                         <Loader2 className="w-5 h-5 animate-spin" />
-                        Sending...
+                        Signing in...
                       </>
                     ) : (
                       <>
-                        Send OTP
-                        <ArrowRight className="w-5 h-5" />
+                        <LogIn className="w-5 h-5" />
+                        Sign In
                       </>
                     )}
                   </motion.button>
-                </motion.div>
-              )}
 
-              {step === 'otp' && (
-                <motion.div
-                  key="otp"
+                  {/* Demo Credentials */}
+                  <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <p className="text-sm font-medium text-blue-900 mb-2">Demo Credentials:</p>
+                    <p className="text-xs text-blue-800">Email: <code className="bg-white px-2 py-1 rounded">demo@patient.com</code></p>
+                    <p className="text-xs text-blue-800">Password: <code className="bg-white px-2 py-1 rounded">demo123</code></p>
+                  </div>
+                </motion.form>
+              ) : (
+                // REGISTER FORM
+                <motion.form
+                  key="register"
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
+                  onSubmit={handleRegister}
+                  className="space-y-4"
                 >
-                  <button
-                    onClick={() => { setStep('phone'); setOtp(''); setError(null); }}
-                    className="flex items-center gap-1 text-slate-600 hover:text-primary-600 
-                             transition-colors mb-6"
-                  >
-                    <ArrowLeft className="w-4 h-4" />
-                    Back
-                  </button>
-
-                  <div className="text-center mb-6">
-                    <div className="w-12 h-12 bg-secondary-100 rounded-xl flex items-center justify-center mx-auto mb-3">
-                      <Smartphone className="w-6 h-6 text-secondary-600" />
+                  {/* Name */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+                    <div className="relative">
+                      <User className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+                      <input
+                        type="text"
+                        value={registerData.name}
+                        onChange={(e) => setRegisterData({ ...registerData, name: e.target.value })}
+                        placeholder="John Doe"
+                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                      />
                     </div>
-                    <h2 className="font-display text-lg font-bold text-slate-800">Verify OTP</h2>
-                    <p className="text-sm text-slate-500">
-                      Enter the 6-digit code sent to <span className="font-medium">+91 {phone}</span>
-                    </p>
                   </div>
 
-                  {/* Dev OTP hint */}
-                  {devOtp && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="flex items-center gap-2 p-3 bg-blue-50 rounded-xl text-blue-600 text-sm mb-4"
-                    >
-                      <Shield className="w-4 h-4" />
-                      <span>Dev OTP: <strong>{devOtp}</strong></span>
-                    </motion.div>
-                  )}
-
-                  <div className="mb-6">
-                    <OtpInput 
-                      length={6} 
-                      value={otp} 
-                      onChange={setOtp} 
-                    />
+                  {/* Email */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+                      <input
+                        type="email"
+                        value={registerData.email}
+                        onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
+                        placeholder="your@email.com"
+                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                      />
+                    </div>
                   </div>
 
-                  <AnimatePresence>
-                    {error && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        className="flex items-center gap-2 p-3 bg-red-50 rounded-xl text-red-600 text-sm mb-4"
+                  {/* Phone */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                    <div className="relative">
+                      <Phone className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+                      <input
+                        type="tel"
+                        value={registerData.phone}
+                        onChange={(e) => setRegisterData({ ...registerData, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
+                        placeholder="9876543210"
+                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Password */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        value={registerData.password}
+                        onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
+                        placeholder="••••••••"
+                        className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
                       >
-                        <AlertCircle className="w-4 h-4" />
-                        {error}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                        {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      </button>
+                    </div>
+                  </div>
 
+                  {/* Register Button */}
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    onClick={onVerify}
-                    disabled={loading || otp.length < 6}
-                    className="w-full py-4 bg-gradient-to-r from-primary-500 to-primary-600 
-                              text-white rounded-xl font-semibold shadow-glow 
-                              disabled:opacity-50 disabled:cursor-not-allowed
-                              flex items-center justify-center gap-2"
+                    type="submit"
+                    disabled={loading}
+                    className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
                     {loading ? (
                       <>
                         <Loader2 className="w-5 h-5 animate-spin" />
-                        Verifying...
+                        Creating account...
                       </>
                     ) : (
                       <>
-                        Verify & Continue
-                        <ArrowRight className="w-5 h-5" />
+                        <UserPlus className="w-5 h-5" />
+                        Create Account
                       </>
                     )}
                   </motion.button>
-
-                  <div className="text-center mt-4">
-                    <button 
-                      onClick={onSend}
-                      className="text-sm text-primary-600 hover:underline"
-                    >
-                      Didn't receive code? Resend OTP
-                    </button>
-                  </div>
-                </motion.div>
-              )}
-
-              {step === 'success' && (
-                <motion.div
-                  key="success"
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="text-center py-8"
-                >
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: 'spring', stiffness: 200, damping: 10 }}
-                    className="w-20 h-20 bg-secondary-100 rounded-full flex items-center justify-center mx-auto mb-4"
-                  >
-                    <CheckCircle className="w-10 h-10 text-secondary-500" />
-                  </motion.div>
-                  <h2 className="font-display text-xl font-bold text-slate-800">Login Successful!</h2>
-                  <p className="text-slate-500 mt-2">Redirecting you to the dashboard...</p>
-                </motion.div>
+                </motion.form>
               )}
             </AnimatePresence>
+
+            {/* Toggle Form */}
+            <div className="mt-6 pt-6 border-t border-gray-200 text-center">
+              <p className="text-sm text-gray-600">
+                {isLogin ? "Don't have an account? " : 'Already have an account? '}
+                <button
+                  onClick={() => {
+                    setIsLogin(!isLogin)
+                    setError(null)
+                    setLoginData({ email: '', password: '' })
+                    setRegisterData({ name: '', email: '', password: '', phone: '', role: 'PATIENT' })
+                  }}
+                  className="text-blue-600 hover:text-blue-700 font-semibold"
+                >
+                  {isLogin ? 'Sign Up' : 'Sign In'}
+                </button>
+              </p>
+            </div>
           </div>
         </div>
-
-        {/* Footer */}
-        <p className="text-center text-xs text-slate-500 mt-6">
-          By continuing, you agree to our{' '}
-          <a href="#" className="text-primary-600 hover:underline">Terms of Service</a>
-          {' '}and{' '}
-          <a href="#" className="text-primary-600 hover:underline">Privacy Policy</a>
-        </p>
       </motion.div>
     </div>
   )
