@@ -10,6 +10,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
@@ -30,6 +31,11 @@ public class SecurityConfig {
 
     @Value("${cors.allowed-origins}")
     private String allowedOrigins;
+
+    @Bean
+    public BCryptPasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder(12);  // Strength 12 as per specification
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -53,7 +59,7 @@ public class SecurityConfig {
                                 "/v3/api-docs/**"
                         ).permitAll()
                         // Protected endpoints
-                        .requestMatchers("/api/appointments/**", "/api/users/**").authenticated()
+                        .requestMatchers("/api/bookings/**", "/api/users/**", "/api/sse/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 // Security headers
@@ -97,3 +103,4 @@ public class SecurityConfig {
         return source;
     }
 }
+

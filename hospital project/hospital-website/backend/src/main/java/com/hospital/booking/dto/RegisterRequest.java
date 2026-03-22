@@ -1,5 +1,6 @@
 package com.hospital.booking.dto;
 
+import com.hospital.booking.entity.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,10 +10,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class UserDTO {
-    private String id;
+public class RegisterRequest {
     private String name;
     private String email;
+    private String password;
     private String phone;
-    private String role;
+    private User.UserRole role;
+    private String hospitalId;  // Only for HOSPITAL_ADMIN
 }

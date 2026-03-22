@@ -6,7 +6,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.index.Indexed;
 
 import java.util.ArrayList;
@@ -35,5 +34,22 @@ public class Hospital {
 
     private String imageUrl;
 
-    private List<String> specialties = new ArrayList<>();
+    @Builder.Default
+    private List<String> departments = new ArrayList<>();
+
+    @Builder.Default
+    private List<Doctor> doctors = new ArrayList<>();
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class Doctor {
+        private String name;
+        private String department;
+    }
+
+    public List<String> getSpecialties() {
+        return departments;
+    }
 }

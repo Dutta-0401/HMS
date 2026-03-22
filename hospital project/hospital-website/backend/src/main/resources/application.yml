@@ -4,31 +4,25 @@ server:
 spring:
   application:
     name: hospital-booking-api
-  
-  # MongoDB Atlas Configuration - Use environment variables in production
   data:
     mongodb:
-      uri: ${MONGODB_URI:mongodb+srv://dakshtegta78_db_user:project@cluster0.1oekb1f.mongodb.net/?appName=Cluster0}
+      uri: ${MONGODB_URI:mongodb+srv://dakshtegta78_db_user:Hospital123@cluster0.1oekb1f.mongodb.net/hospitaldb?retryWrites=true&w=majority&appName=Cluster0}
       database: ${MONGODB_DATABASE:hospitaldb}
       auto-index-creation: true
 
-# JWT Configuration - MUST use strong secret in production via environment variable
 jwt:
   secret: ${JWT_SECRET:hospital-booking-secret-key-change-in-production-min-256-bits-required-1234567890}
-  expiration: ${JWT_EXPIRATION:86400000}  # 24 hours in milliseconds
+  expiration: ${JWT_EXPIRATION:86400000}
 
-# CORS Configuration
 cors:
   allowed-origins: ${CORS_ORIGINS:http://localhost:5173,http://localhost:3000}
 
-# Logging - Use INFO in production
 logging:
   level:
     com.hospital: ${LOG_LEVEL:INFO}
     org.springframework.data.mongodb: WARN
     org.springframework.security: WARN
 
-# OpenAPI - Disable in production via environment
 springdoc:
   api-docs:
     path: /api-docs
@@ -37,7 +31,6 @@ springdoc:
     path: /swagger-ui.html
     enabled: ${SWAGGER_ENABLED:true}
 
-# Twilio SMS Configuration
 twilio:
   account-sid: ${TWILIO_ACCOUNT_SID:your_account_sid}
   auth-token: ${TWILIO_AUTH_TOKEN:your_auth_token}

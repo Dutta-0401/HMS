@@ -11,5 +11,6 @@ public interface HospitalRepository extends MongoRepository<Hospital, String> {
     
     List<Hospital> findByCity(String city);
     
-    List<Hospital> findBySpecialtiesContaining(String specialty);
+    List<Hospital> findByDepartmentsContaining(String department);
 }
+

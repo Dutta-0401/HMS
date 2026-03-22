@@ -1,15 +1,16 @@
 package com.hospital.booking.controller;
 
 import com.hospital.booking.dto.AuthResponse;
-import com.hospital.booking.dto.SendOtpRequest;
-import com.hospital.booking.dto.VerifyOtpRequest;
+import com.hospital.booking.dto.LoginRequest;
+import com.hospital.booking.dto.RegisterRequest;
+import com.hospital.booking.dto.UserDTO;
 import com.hospital.booking.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -18,19 +19,24 @@ public class AuthController {
 
     private final AuthService authService;
 
-    @PostMapping("/send-otp")
-    public ResponseEntity<Map<String, Object>> sendOtp(@Valid @RequestBody SendOtpRequest request) {
-        authService.sendOtp(request);
-        // OTP is sent via SMS/email service - never expose in response
-        return ResponseEntity.ok(Map.of(
-                "ok", true,
-                "message", "OTP sent successfully"
-        ));
-    }
-
-    @PostMapping("/verify-otp")
-    public ResponseEntity<AuthResponse> verifyOtp(@Valid @RequestBody VerifyOtpRequest request) {
-        AuthResponse response = authService.verifyOtp(request);
+    @PostMapping("/register")
+    public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
+        AuthResponse response = authService.register(request);
         return ResponseEntity.ok(response);
     }
+
+    @PostMapping("/login")
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
+        AuthResponse response = authService.login(request);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<UserDTO> getCurrentUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String userId = (String) auth.getPrincipal();
+        UserDTO user = authService.getCurrentUser(userId);
+        return ResponseEntity.ok(user);
+    }
 }
+

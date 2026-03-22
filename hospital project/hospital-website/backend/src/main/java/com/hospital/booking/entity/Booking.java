@@ -6,39 +6,49 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.index.Indexed;
 
 import java.time.LocalDateTime;
 
-@Document(collection = "users")
+@Document(collection = "bookings")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class User {
+public class Booking {
 
     @Id
     private String id;
 
-    private String name;
+    @Indexed
+    private String patientId;
 
-    @Indexed(unique = true)
-    private String email;
+    private String patientName;
 
-    private String passwordHash;
-
-    private String phone;
-
-    private UserRole role;
-
-    // For hospital admins only
+    @Indexed
     private String hospitalId;
+
+    private String hospitalName;
+
+    private String department;
+
+    private String doctor;
+
+    private String slotDate;
+
+    private String slotTime;
+
+    private BookingStatus status;
 
     @CreatedDate
     private LocalDateTime createdAt;
 
-    public enum UserRole {
-        PATIENT, HOSPITAL_ADMIN
+    @LastModifiedDate
+    private LocalDateTime updatedAt;
+
+    public enum BookingStatus {
+        PENDING, CONFIRMED, CANCELLED
     }
 }
