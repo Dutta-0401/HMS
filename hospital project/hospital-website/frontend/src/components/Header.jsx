@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
   Menu, X, User, LogOut, Calendar, Building2, Home, 
-  Heart, Phone, ChevronDown 
+  Heart, Phone, ChevronDown, Search
 } from 'lucide-react'
 
 export default function Header() {
@@ -12,21 +12,31 @@ export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isProfileOpen, setIsProfileOpen] = useState(false)
+  const dropdownRef = useRef(null)
   
   const token = localStorage.getItem('token')
   const user = JSON.parse(localStorage.getItem('user') || 'null')
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20)
-    }
-    window.addEventListener('scroll', handleScroll)
+    const handleScroll = () => setIsScrolled(window.scrollY > 20)
+    window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
   useEffect(() => {
     setIsMobileMenuOpen(false)
+    setIsProfileOpen(false)
   }, [location])
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setIsProfileOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   function logout() {
     localStorage.removeItem('token')
@@ -37,7 +47,7 @@ export default function Header() {
 
   const navLinks = [
     { path: '/', label: 'Home', icon: Home },
-    { path: '/hospitals', label: 'Find Hospitals', icon: Building2 },
+    { path: '/hospitals', label: 'Hospitals', icon: Building2 },
   ]
 
   const isActive = (path) => location.pathname === path
@@ -45,65 +55,59 @@ export default function Header() {
   return (
     <>
       <motion.header 
-        initial={{ y: -100 }}
-        animate={{ y: 0 }}
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
           isScrolled 
-            ? 'bg-white/95 backdrop-blur-lg shadow-soft' 
+            ? 'bg-white/80 backdrop-blur-xl border-b border-slate-200/50 shadow-xs' 
             : 'bg-transparent'
         }`}
       >
         <div className="container-custom">
           <div className="flex items-center justify-between h-16 md:h-20">
             {/* Logo */}
-            <Link to="/" className="flex items-center gap-3 group">
+            <Link to="/" className="flex items-center gap-2.5 group">
               <motion.div 
-                whileHover={{ scale: 1.05, rotate: 5 }}
+                whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 className="relative"
               >
-                <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-primary-500 to-secondary-500 
-                              rounded-xl flex items-center justify-center shadow-soft">
-                  <Heart className="w-5 h-5 md:w-6 md:h-6 text-white" fill="white" />
+                <div className="w-9 h-9 md:w-10 md:h-10 bg-gradient-to-br from-primary-600 to-primary-500 
+                              rounded-xl flex items-center justify-center shadow-md shadow-primary-500/20">
+                  <Heart className="w-[18px] h-[18px] md:w-5 md:h-5 text-white" fill="white" strokeWidth={0} />
                 </div>
-                <motion.div 
-                  className="absolute -top-1 -right-1 w-3 h-3 bg-secondary-400 rounded-full"
-                  animate={{ scale: [1, 1.2, 1] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                />
               </motion.div>
               <div className="hidden sm:block">
-                <div className="font-display font-bold text-lg md:text-xl bg-gradient-to-r from-primary-600 to-secondary-600 
-                              bg-clip-text text-transparent">
-                  CityHealth
-                </div>
-                <div className="text-[10px] md:text-xs text-slate-500 -mt-0.5">
-                  Healthcare Made Simple
-                </div>
+                <span className="font-display font-bold text-lg tracking-tight text-slate-900">
+                  City<span className="text-primary-600">Health</span>
+                </span>
               </div>
             </Link>
 
             {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center gap-1">
+            <nav className="hidden md:flex items-center bg-white/60 backdrop-blur-sm rounded-2xl border border-slate-200/50 p-1">
               {navLinks.map((link) => {
                 const Icon = link.icon
+                const active = isActive(link.path)
                 return (
                   <Link
                     key={link.path}
                     to={link.path}
-                    className={`relative px-4 py-2 rounded-xl font-medium text-sm transition-all duration-200
+                    className={`relative px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200
                               flex items-center gap-2 ${
-                      isActive(link.path)
-                        ? 'text-primary-600'
-                        : 'text-slate-600 hover:text-primary-600 hover:bg-primary-50'
+                      active
+                        ? 'text-primary-700 bg-primary-50'
+                        : 'text-slate-500 hover:text-slate-900 hover:bg-white/80'
                     }`}
                   >
                     <Icon className="w-4 h-4" />
                     {link.label}
-                    {isActive(link.path) && (
+                    {active && (
                       <motion.div
-                        layoutId="activeTab"
-                        className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 bg-primary-500 rounded-full"
+                        layoutId="nav-active"
+                        className="absolute inset-0 bg-primary-50 rounded-xl -z-10"
+                        transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                       />
                     )}
                   </Link>
@@ -112,37 +116,38 @@ export default function Header() {
             </nav>
 
             {/* Right Section */}
-            <div className="flex items-center gap-3">
-              {/* Emergency Button */}
+            <div className="flex items-center gap-2">
+              {/* Emergency */}
               <motion.a
                 href="tel:108"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="hidden lg:flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 
-                          rounded-xl font-medium text-sm hover:bg-red-100 transition-colors"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="hidden lg:flex items-center gap-2 px-3.5 py-2 text-red-600 bg-red-50 
+                          rounded-xl text-sm font-medium hover:bg-red-100 transition-colors"
               >
-                <Phone className="w-4 h-4" />
+                <Phone className="w-3.5 h-3.5" />
                 Emergency
               </motion.a>
 
-              {/* Auth Section */}
+              {/* Auth */}
               {token ? (
-                <div className="relative">
+                <div className="relative" ref={dropdownRef}>
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => setIsProfileOpen(!isProfileOpen)}
-                    className="flex items-center gap-2 px-3 py-2 rounded-xl bg-surface-100 
-                              hover:bg-surface-200 transition-colors"
+                    className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-xl
+                              bg-white/80 border border-slate-200/60 hover:border-slate-300
+                              transition-all duration-200"
                   >
-                    <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-secondary-500 
+                    <div className="w-7 h-7 bg-gradient-to-br from-primary-500 to-primary-600 
                                   rounded-lg flex items-center justify-center">
-                      <User className="w-4 h-4 text-white" />
+                      <User className="w-3.5 h-3.5 text-white" />
                     </div>
-                    <span className="hidden sm:block font-medium text-sm text-slate-700">
+                    <span className="hidden sm:block text-sm font-medium text-slate-700 max-w-[100px] truncate">
                       {user?.name || 'Profile'}
                     </span>
-                    <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${
+                    <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${
                       isProfileOpen ? 'rotate-180' : ''
                     }`} />
                   </motion.button>
@@ -150,61 +155,54 @@ export default function Header() {
                   <AnimatePresence>
                     {isProfileOpen && (
                       <motion.div
-                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                        initial={{ opacity: 0, y: 8, scale: 0.96 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                        className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-soft-lg 
-                                  border border-surface-200 py-2 overflow-hidden"
+                        exit={{ opacity: 0, y: 8, scale: 0.96 }}
+                        transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                        className="absolute right-0 mt-2 w-60 bg-white rounded-2xl shadow-soft-xl 
+                                  border border-slate-200/60 py-2 overflow-hidden"
                       >
-                        <div className="px-4 py-3 border-b border-surface-200">
-                          <p className="font-semibold text-slate-800">{user?.name}</p>
-                          <p className="text-xs text-slate-500">{user?.phone}</p>
+                        <div className="px-4 py-3 border-b border-slate-100">
+                          <p className="font-semibold text-sm text-slate-900 truncate">{user?.name}</p>
+                          <p className="text-xs text-slate-400 truncate mt-0.5">{user?.email || user?.phone}</p>
                         </div>
                         <Link
                           to="/profile"
-                          onClick={() => setIsProfileOpen(false)}
-                          className="flex items-center gap-3 px-4 py-3 hover:bg-surface-100 
-                                   transition-colors text-slate-700"
+                          className="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 
+                                   transition-colors text-slate-600"
                         >
-                          <Calendar className="w-4 h-4 text-primary-500" />
+                          <Calendar className="w-4 h-4 text-slate-400" />
                           <span className="text-sm">My Appointments</span>
                         </Link>
                         <button
                           onClick={logout}
-                          className="flex items-center gap-3 px-4 py-3 hover:bg-red-50 
+                          className="flex items-center gap-3 px-4 py-2.5 hover:bg-red-50 
                                    transition-colors text-red-600 w-full"
                         >
                           <LogOut className="w-4 h-4" />
-                          <span className="text-sm">Logout</span>
+                          <span className="text-sm">Sign out</span>
                         </button>
                       </motion.div>
                     )}
                   </AnimatePresence>
                 </div>
               ) : (
-                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                  <Link
-                    to="/login"
-                    className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-primary-500 to-primary-600 
-                              text-white rounded-xl font-medium text-sm shadow-soft hover:shadow-glow 
-                              transition-all duration-300"
-                  >
-                    <User className="w-4 h-4" />
-                    <span className="hidden sm:inline">Login</span>
-                  </Link>
-                </motion.div>
+                <Link to="/login" className="btn-primary-sm">
+                  <User className="w-4 h-4" />
+                  <span className="hidden sm:inline">Sign in</span>
+                </Link>
               )}
 
-              {/* Mobile Menu Button */}
+              {/* Mobile Toggle */}
               <motion.button
                 whileTap={{ scale: 0.9 }}
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="md:hidden p-2 rounded-xl hover:bg-surface-100 transition-colors"
+                className="md:hidden p-2 rounded-xl hover:bg-slate-100 transition-colors"
               >
                 {isMobileMenuOpen ? (
-                  <X className="w-6 h-6 text-slate-700" />
+                  <X className="w-5 h-5 text-slate-700" />
                 ) : (
-                  <Menu className="w-6 h-6 text-slate-700" />
+                  <Menu className="w-5 h-5 text-slate-700" />
                 )}
               </motion.button>
             </div>
@@ -218,50 +216,58 @@ export default function Header() {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="md:hidden bg-white border-t border-surface-200"
+              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+              className="md:hidden bg-white/95 backdrop-blur-xl border-t border-slate-200/50 overflow-hidden"
             >
-              <div className="container-custom py-4 space-y-2">
-                {navLinks.map((link) => {
+              <div className="container-custom py-3 space-y-1">
+                {navLinks.map((link, i) => {
                   const Icon = link.icon
                   return (
-                    <Link
+                    <motion.div
                       key={link.path}
-                      to={link.path}
-                      className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${
-                        isActive(link.path)
-                          ? 'bg-primary-50 text-primary-600'
-                          : 'text-slate-600 hover:bg-surface-100'
-                      }`}
+                      initial={{ opacity: 0, x: -12 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.05 }}
                     >
-                      <Icon className="w-5 h-5" />
-                      <span className="font-medium">{link.label}</span>
-                    </Link>
+                      <Link
+                        to={link.path}
+                        className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${
+                          isActive(link.path)
+                            ? 'bg-primary-50 text-primary-700 font-medium'
+                            : 'text-slate-600 hover:bg-slate-50'
+                        }`}
+                      >
+                        <Icon className="w-5 h-5" />
+                        <span>{link.label}</span>
+                      </Link>
+                    </motion.div>
                   )
                 })}
-                <a
+                <div className="divider my-2" />
+                <motion.a
                   href="tel:108"
+                  initial={{ opacity: 0, x: -12 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.1 }}
                   className="flex items-center gap-3 px-4 py-3 rounded-xl bg-red-50 text-red-600"
                 >
                   <Phone className="w-5 h-5" />
                   <span className="font-medium">Emergency: 108</span>
-                </a>
+                </motion.a>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
       </motion.header>
 
-      {/* Spacer for fixed header */}
+      {/* Spacer */}
       <div className="h-16 md:h-20" />
 
-      {/* Overlay for dropdowns */}
+      {/* Overlay */}
       {(isProfileOpen || isMobileMenuOpen) && (
         <div 
           className="fixed inset-0 z-40" 
-          onClick={() => {
-            setIsProfileOpen(false)
-            setIsMobileMenuOpen(false)
-          }}
+          onClick={() => { setIsProfileOpen(false); setIsMobileMenuOpen(false) }}
         />
       )}
     </>

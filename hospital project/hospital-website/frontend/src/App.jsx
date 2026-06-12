@@ -17,14 +17,13 @@ function requireAuth() {
   return localStorage.getItem('token')
 }
 
-// Page transition wrapper
 function PageTransition({ children }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.3, ease: 'easeInOut' }}
+      exit={{ opacity: 0, y: -8 }}
+      transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
     >
       {children}
     </motion.div>
@@ -33,18 +32,18 @@ function PageTransition({ children }) {
 
 export default function App() {
   const location = useLocation()
-  const isHomePage = location.pathname === '/'
-  // Pages that should show the footer
   const showFooter = ['/', '/hospitals', '/profile'].includes(location.pathname) || 
                      location.pathname.startsWith('/hospitals/')
 
   return (
-    <div className="min-h-screen bg-surface-50 text-slate-800 flex flex-col">
+    <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col">
       <Header />
       <main className="flex-1">
         <AnimatePresence mode="wait">
           <Routes location={location} key={location.pathname}>
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={
+              <PageTransition><Home /></PageTransition>
+            } />
             <Route path="/login" element={
               <PageTransition>
                 <div className="container-custom py-8">
@@ -54,7 +53,9 @@ export default function App() {
             } />
             <Route path="/hospitals" element={
               <PageTransition>
-                <Hospitals />
+                <div className="container-custom py-8">
+                  <Hospitals />
+                </div>
               </PageTransition>
             } />
             <Route path="/hospitals/:id" element={
