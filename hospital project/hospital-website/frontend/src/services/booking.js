@@ -61,17 +61,13 @@ export async function getSlots(doctorId, date) {
 export async function createAppointment(appointmentData) {
   try {
     const response = await api.post('/appointments', {
-      patientName: appointmentData.patientName,
-      hospitalId: appointmentData.hospitalId,
-      hospitalName: appointmentData.hospitalName,
-      department: appointmentData.department,
-      doctor: appointmentData.doctor,
-      slotDate: appointmentData.slotDate,
-      slotTime: appointmentData.slotTime
+      doctorId: appointmentData.doctorId,
+      slotId: appointmentData.slotId,
+      paymentMethod: appointmentData.paymentMethod,
     })
     return response.data
   } catch (error) {
-    throw new Error(error.response?.data?.message || 'Failed to create appointment')
+    throw new Error(error.response?.data?.details ? Object.values(error.response.data.details).join(', ') : error.response?.data?.message || 'Failed to create appointment')
   }
 }
 

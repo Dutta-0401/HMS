@@ -1,17 +1,21 @@
 server:
-  port: 5000
+  port: ${PORT:5000}
 
 spring:
   application:
     name: hospital-booking-api
   data:
     mongodb:
-      uri: ${MONGODB_URI:mongodb+srv://dakshtegta78_db_user:Hospital123@cluster0.1oekb1f.mongodb.net/hospitaldb?retryWrites=true&w=majority&appName=Cluster0}
+      # Defaults to a local MongoDB on this machine. Override MONGODB_URI in
+      # production with your Atlas/managed connection string (never commit it).
+      uri: ${MONGODB_URI:mongodb://localhost:27017/hospitaldb}
       database: ${MONGODB_DATABASE:hospitaldb}
       auto-index-creation: true
 
 jwt:
-  secret: ${JWT_SECRET:hospital-booking-secret-key-change-in-production-min-256-bits-required-1234567890}
+  # Override JWT_SECRET in production with a strong secret (>= 256 bits).
+  # The default below is for local development only.
+  secret: ${JWT_SECRET:local-dev-secret-key-change-in-production-min-256-bits-required-0123456789}
   expiration: ${JWT_EXPIRATION:86400000}
 
 cors:
@@ -37,3 +41,11 @@ twilio:
   phone-number: ${TWILIO_PHONE_NUMBER:your_twilio_number}
   verify-service-sid: ${TWILIO_VERIFY_SERVICE_SID:your_verify_service_sid}
   country-code: ${TWILIO_COUNTRY_CODE:+91}
+
+payu:
+  # Set PAYU_MID and PAYU_SALT as Railway env vars — never commit real credentials.
+  # PAYU_MOCK_ENABLED=false turns off the test dialog and submits to real PayU.
+  mid: ${PAYU_MID:}
+  salt: ${PAYU_SALT:}
+  env: ${PAYU_ENV:test}
+  mock-enabled: ${PAYU_MOCK_ENABLED:true}

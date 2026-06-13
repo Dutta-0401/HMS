@@ -1,151 +1,81 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { 
-  Heart, Phone, Mail, MapPin, 
-  Facebook, Twitter, Instagram, Linkedin,
-  ChevronRight
-} from 'lucide-react'
-
-const footerLinks = {
-  company: [
-    { label: 'About Us', href: '/about' },
-    { label: 'Careers', href: '/careers' },
-    { label: 'Press', href: '/press' },
-    { label: 'Blog', href: '/blog' },
-  ],
-  services: [
-    { label: 'Find Hospitals', href: '/hospitals' },
-    { label: 'Book Appointment', href: '/hospitals' },
-    { label: 'Health Packages', href: '/packages' },
-    { label: 'Online Consultation', href: '/consultation' },
-  ],
-  support: [
-    { label: 'Help Center', href: '/help' },
-    { label: 'Contact Us', href: '/contact' },
-    { label: 'Privacy Policy', href: '/privacy' },
-    { label: 'Terms of Service', href: '/terms' },
-  ],
-}
-
-const socialLinks = [
-  { icon: Facebook, href: '#', label: 'Facebook' },
-  { icon: Twitter, href: '#', label: 'Twitter' },
-  { icon: Instagram, href: '#', label: 'Instagram' },
-  { icon: Linkedin, href: '#', label: 'LinkedIn' },
-]
+import { Heart, Phone, Mail, MapPin, Facebook, Twitter, Instagram, Linkedin } from 'lucide-react'
 
 export default function Footer() {
   return (
-    <footer className="bg-slate-900 text-white">
-      {/* Main Footer */}
-      <div className="max-w-7xl mx-auto px-4 py-12 md:py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
+    <footer className="bg-slate-900 text-white mt-auto">
+      <div className="container-custom py-12 md:py-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
           {/* Brand */}
-          <div className="lg:col-span-2">
-            <Link to="/" className="flex items-center gap-2 mb-4">
-              <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-secondary-500 
+          <div className="lg:col-span-1">
+            <div className="flex items-center gap-2.5 mb-4">
+              <div className="w-9 h-9 bg-gradient-to-br from-primary-500 to-primary-400 
                             rounded-xl flex items-center justify-center">
-                <Heart className="w-5 h-5 text-white" />
+                <Heart className="w-[18px] h-[18px] text-white" fill="white" strokeWidth={0} />
               </div>
-              <span className="font-display text-xl font-bold">CityHealth</span>
-            </Link>
-            <p className="text-slate-400 text-sm mb-6 max-w-sm">
-              Your trusted partner for healthcare appointments. Connect with top doctors 
-              and hospitals near you for quality medical care.
+              <span className="font-display font-bold text-lg">
+                City<span className="text-primary-400">Health</span>
+              </span>
+            </div>
+            <p className="text-sm text-slate-400 leading-relaxed mb-4">
+              Making healthcare accessible, one appointment at a time.
             </p>
-            
-            {/* Contact Info */}
-            <div className="space-y-3 text-sm text-slate-400">
-              <a href="tel:1800-123-4567" className="flex items-center gap-2 hover:text-white transition-colors">
-                <Phone className="w-4 h-4 text-primary-400" />
-                1800-123-4567 (Toll Free)
+            <div className="space-y-2 text-sm text-slate-400">
+              <a href="tel:18001234567" className="flex items-center gap-2 hover:text-white transition-colors">
+                <Phone className="w-4 h-4" /> 1800-123-4567
               </a>
               <a href="mailto:support@cityhealth.com" className="flex items-center gap-2 hover:text-white transition-colors">
-                <Mail className="w-4 h-4 text-primary-400" />
-                support@cityhealth.com
+                <Mail className="w-4 h-4" /> support@cityhealth.com
               </a>
               <div className="flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-primary-400" />
-                Mumbai, Maharashtra, India
+                <MapPin className="w-4 h-4" /> Healthcare District, India
               </div>
             </div>
           </div>
 
           {/* Links */}
           <div>
-            <h4 className="font-semibold mb-4">Company</h4>
-            <ul className="space-y-2">
-              {footerLinks.company.map(link => (
-                <li key={link.label}>
-                  <Link 
-                    to={link.href}
-                    className="text-sm text-slate-400 hover:text-white transition-colors 
-                             flex items-center gap-1 group"
-                  >
-                    <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
+            <h3 className="font-semibold text-sm uppercase tracking-wider text-slate-300 mb-4">Company</h3>
+            <ul className="space-y-2.5 text-sm text-slate-400">
+              <li><Link to="/" className="hover:text-white transition-colors">About Us</Link></li>
+              <li><Link to="/" className="hover:text-white transition-colors">Careers</Link></li>
+              <li><Link to="/" className="hover:text-white transition-colors">Blog</Link></li>
+              <li><Link to="/" className="hover:text-white transition-colors">Press</Link></li>
             </ul>
           </div>
 
           <div>
-            <h4 className="font-semibold mb-4">Services</h4>
-            <ul className="space-y-2">
-              {footerLinks.services.map(link => (
-                <li key={link.label}>
-                  <Link 
-                    to={link.href}
-                    className="text-sm text-slate-400 hover:text-white transition-colors 
-                             flex items-center gap-1 group"
-                  >
-                    <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
+            <h3 className="font-semibold text-sm uppercase tracking-wider text-slate-300 mb-4">Services</h3>
+            <ul className="space-y-2.5 text-sm text-slate-400">
+              <li><Link to="/hospitals" className="hover:text-white transition-colors">Find Hospitals</Link></li>
+              <li><Link to="/hospitals" className="hover:text-white transition-colors">Book Appointments</Link></li>
+              <li><Link to="/" className="hover:text-white transition-colors">Health Records</Link></li>
+              <li><Link to="/" className="hover:text-white transition-colors">Insurance</Link></li>
             </ul>
           </div>
 
           <div>
-            <h4 className="font-semibold mb-4">Support</h4>
-            <ul className="space-y-2">
-              {footerLinks.support.map(link => (
-                <li key={link.label}>
-                  <Link 
-                    to={link.href}
-                    className="text-sm text-slate-400 hover:text-white transition-colors 
-                             flex items-center gap-1 group"
-                  >
-                    <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
+            <h3 className="font-semibold text-sm uppercase tracking-wider text-slate-300 mb-4">Support</h3>
+            <ul className="space-y-2.5 text-sm text-slate-400">
+              <li><Link to="/" className="hover:text-white transition-colors">Help Center</Link></li>
+              <li><Link to="/" className="hover:text-white transition-colors">Privacy Policy</Link></li>
+              <li><Link to="/" className="hover:text-white transition-colors">Terms of Service</Link></li>
+              <li><a href="tel:108" className="hover:text-white transition-colors">Emergency: 108</a></li>
             </ul>
           </div>
         </div>
-      </div>
 
-      {/* Bottom Bar */}
-      <div className="border-t border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 py-6 flex flex-col md:flex-row justify-between items-center gap-4">
+        {/* Bottom */}
+        <div className="mt-12 pt-8 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-sm text-slate-500">
-            © {new Date().getFullYear()} CityHealth. All rights reserved.
+            &copy; {new Date().getFullYear()} CityHealth. All rights reserved.
           </p>
-          
-          {/* Social Links */}
-          <div className="flex items-center gap-4">
-            {socialLinks.map(social => (
-              <a
-                key={social.label}
-                href={social.href}
-                aria-label={social.label}
-                className="w-9 h-9 bg-slate-800 rounded-lg flex items-center justify-center 
-                          text-slate-400 hover:bg-primary-500 hover:text-white transition-all"
-              >
-                <social.icon className="w-4 h-4" />
+          <div className="flex items-center gap-3">
+            {[Facebook, Twitter, Instagram, Linkedin].map((Icon, i) => (
+              <a key={i} href="#" className="w-9 h-9 bg-slate-800 hover:bg-slate-700 rounded-lg 
+                                            flex items-center justify-center transition-colors">
+                <Icon className="w-4 h-4 text-slate-400" />
               </a>
             ))}
           </div>

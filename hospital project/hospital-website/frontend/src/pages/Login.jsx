@@ -1,42 +1,31 @@
 import React, { useState } from 'react'
+import { useNavigate, Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Mail, Lock, User, Phone, Loader2, AlertCircle, Eye, EyeOff, LogIn, UserPlus } from 'lucide-react'
+import { 
+  Mail, Lock, User, Phone, Eye, EyeOff, ArrowRight,
+  Heart, AlertCircle, Loader2, ChevronLeft
+} from 'lucide-react'
 import { login, register } from '../services/auth'
-import { useNavigate } from 'react-router-dom'
 
 export default function Login() {
+  const navigate = useNavigate()
   const [isLogin, setIsLogin] = useState(true)
-  const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
-  const navigate = useNavigate()
-
-  // Login form
-  const [loginData, setLoginData] = useState({
-    email: '',
-    password: ''
-  })
-
-  // Register form
-  const [registerData, setRegisterData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    phone: '',
-    role: 'PATIENT'
+  const [showPassword, setShowPassword] = useState(false)
+  const [loginData, setLoginData] = useState({ email: '', password: '' })
+  const [registerData, setRegisterData] = useState({ 
+    name: '', email: '', phone: '', password: '' 
   })
 
   async function handleLogin(e) {
     e.preventDefault()
-    
     if (!loginData.email || !loginData.password) {
       setError('Please fill in all fields')
       return
     }
-
     setLoading(true)
     setError(null)
-
     try {
       await login(loginData.email, loginData.password)
       navigate('/hospitals')
@@ -49,20 +38,16 @@ export default function Login() {
 
   async function handleRegister(e) {
     e.preventDefault()
-    
     if (!registerData.name || !registerData.email || !registerData.password || !registerData.phone) {
       setError('Please fill in all required fields')
       return
     }
-
     if (registerData.password.length < 6) {
       setError('Password must be at least 6 characters')
       return
     }
-
     setLoading(true)
     setError(null)
-
     try {
       await register(registerData)
       navigate('/hospitals')
@@ -74,232 +59,243 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center py-8">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md"
-      >
+    <div className="min-h-[85vh] flex items-center justify-center py-12">
+      <div className="w-full max-w-md mx-auto px-4">
+        {/* Back to home */}
+        <Link 
+          to="/"
+          className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-slate-700 
+                    transition-colors mb-8"
+        >
+          <ChevronLeft className="w-4 h-4" />
+          Back to home
+        </Link>
+
         {/* Card */}
-        <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          className="bg-white rounded-3xl shadow-soft-xl border border-slate-200/60 overflow-hidden"
+        >
           {/* Header */}
-          <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-8 text-white text-center">
-            <h1 className="text-2xl font-bold mb-2">Hospital Booking System</h1>
-            <p className="text-blue-100">{isLogin ? 'Sign in to your account' : 'Create a new account'}</p>
+          <div className="px-8 pt-8 pb-6">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 bg-gradient-to-br from-primary-600 to-primary-500 
+                            rounded-xl flex items-center justify-center shadow-md shadow-primary-500/20">
+                <Heart className="w-5 h-5 text-white" fill="white" strokeWidth={0} />
+              </div>
+              <span className="font-display font-bold text-lg text-slate-900">
+                City<span className="text-primary-600">Health</span>
+              </span>
+            </div>
+
+            <h1 className="font-display text-2xl font-bold text-slate-900">
+              {isLogin ? 'Welcome back' : 'Create an account'}
+            </h1>
+            <p className="text-sm text-slate-500 mt-1">
+              {isLogin 
+                ? 'Sign in to manage your appointments' 
+                : 'Join CityHealth to book appointments'
+              }
+            </p>
           </div>
 
-          {/* Content */}
+          {/* Toggle */}
+          <div className="px-8">
+            <div className="flex bg-slate-100 rounded-xl p-1">
+              {['Sign in', 'Sign up'].map((label, i) => (
+                <button
+                  key={label}
+                  onClick={() => { setIsLogin(i === 0); setError(null) }}
+                  className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                    (i === 0 ? isLogin : !isLogin)
+                      ? 'bg-white text-slate-900 shadow-sm'
+                      : 'text-slate-500 hover:text-slate-700'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Form */}
           <div className="p-8">
             <AnimatePresence mode="wait">
-              {/* Error Alert */}
               {error && (
                 <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm mb-6"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="mb-4"
                 >
-                  <AlertCircle className="w-5 h-5 flex-shrink-0" />
-                  <span>{error}</span>
+                  <div className="flex items-center gap-3 p-3 bg-red-50 border border-red-100 rounded-xl text-red-700 text-sm">
+                    <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                    {error}
+                  </div>
                 </motion.div>
               )}
+            </AnimatePresence>
 
+            <AnimatePresence mode="wait">
               {isLogin ? (
-                // LOGIN FORM
                 <motion.form
                   key="login"
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 20 }}
+                  transition={{ duration: 0.2 }}
                   onSubmit={handleLogin}
                   className="space-y-4"
                 >
-                  {/* Email */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                    <label className="input-label">Email address</label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+                      <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-slate-400" />
                       <input
                         type="email"
                         value={loginData.email}
-                        onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
-                        placeholder="your@email.com"
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                        onChange={e => setLoginData({ ...loginData, email: e.target.value })}
+                        placeholder="you@example.com"
+                        className="input pl-11"
                       />
                     </div>
                   </div>
 
-                  {/* Password */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                    <label className="input-label">Password</label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+                      <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-slate-400" />
                       <input
                         type={showPassword ? 'text' : 'password'}
                         value={loginData.password}
-                        onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
-                        placeholder="••••••••"
-                        className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                        onChange={e => setLoginData({ ...loginData, password: e.target.value })}
+                        placeholder="Enter your password"
+                        className="input pl-11 pr-11"
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                       >
-                        {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                        {showPassword ? <EyeOff className="w-[18px] h-[18px]" /> : <Eye className="w-[18px] h-[18px]" />}
                       </button>
                     </div>
                   </div>
 
-                  {/* Login Button */}
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    type="submit"
-                    disabled={loading}
-                    className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                  >
+                  <button type="submit" disabled={loading} className="btn-primary w-full justify-center mt-6">
                     {loading ? (
-                      <>
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                        Signing in...
-                      </>
+                      <Loader2 className="w-[18px] h-[18px] animate-spin" />
                     ) : (
                       <>
-                        <LogIn className="w-5 h-5" />
-                        Sign In
+                        Sign in
+                        <ArrowRight className="w-4 h-4" />
                       </>
                     )}
-                  </motion.button>
-
-                  {/* Demo Credentials */}
-                  <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                    <p className="text-sm font-medium text-blue-900 mb-2">Demo Credentials:</p>
-                    <p className="text-xs text-blue-800">Email: <code className="bg-white px-2 py-1 rounded">demo@patient.com</code></p>
-                    <p className="text-xs text-blue-800">Password: <code className="bg-white px-2 py-1 rounded">demo123</code></p>
-                  </div>
+                  </button>
                 </motion.form>
               ) : (
-                // REGISTER FORM
                 <motion.form
                   key="register"
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.2 }}
                   onSubmit={handleRegister}
                   className="space-y-4"
                 >
-                  {/* Name */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+                    <label className="input-label">Full name</label>
                     <div className="relative">
-                      <User className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+                      <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-slate-400" />
                       <input
                         type="text"
                         value={registerData.name}
-                        onChange={(e) => setRegisterData({ ...registerData, name: e.target.value })}
+                        onChange={e => setRegisterData({ ...registerData, name: e.target.value })}
                         placeholder="John Doe"
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                        className="input pl-11"
                       />
                     </div>
                   </div>
 
-                  {/* Email */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                    <label className="input-label">Email address</label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+                      <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-slate-400" />
                       <input
                         type="email"
                         value={registerData.email}
-                        onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
-                        placeholder="your@email.com"
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                        onChange={e => setRegisterData({ ...registerData, email: e.target.value })}
+                        placeholder="you@example.com"
+                        className="input pl-11"
                       />
                     </div>
                   </div>
 
-                  {/* Phone */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                    <label className="input-label">Phone number</label>
                     <div className="relative">
-                      <Phone className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+                      <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-slate-400" />
                       <input
                         type="tel"
                         value={registerData.phone}
-                        onChange={(e) => setRegisterData({ ...registerData, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
+                        onChange={e => setRegisterData({ ...registerData, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
                         placeholder="9876543210"
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                        className="input pl-11"
                       />
                     </div>
                   </div>
 
-                  {/* Password */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                    <label className="input-label">Password</label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+                      <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-slate-400" />
                       <input
                         type={showPassword ? 'text' : 'password'}
                         value={registerData.password}
-                        onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
-                        placeholder="••••••••"
-                        className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                        onChange={e => setRegisterData({ ...registerData, password: e.target.value })}
+                        placeholder="Min 6 characters"
+                        className="input pl-11 pr-11"
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                       >
-                        {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                        {showPassword ? <EyeOff className="w-[18px] h-[18px]" /> : <Eye className="w-[18px] h-[18px]" />}
                       </button>
                     </div>
                   </div>
 
-                  {/* Register Button */}
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    type="submit"
-                    disabled={loading}
-                    className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                  >
+                  <button type="submit" disabled={loading} className="btn-primary w-full justify-center mt-6">
                     {loading ? (
-                      <>
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                        Creating account...
-                      </>
+                      <Loader2 className="w-[18px] h-[18px] animate-spin" />
                     ) : (
                       <>
-                        <UserPlus className="w-5 h-5" />
-                        Create Account
+                        Create account
+                        <ArrowRight className="w-4 h-4" />
                       </>
                     )}
-                  </motion.button>
+                  </button>
                 </motion.form>
               )}
             </AnimatePresence>
 
-            {/* Toggle Form */}
-            <div className="mt-6 pt-6 border-t border-gray-200 text-center">
-              <p className="text-sm text-gray-600">
-                {isLogin ? "Don't have an account? " : 'Already have an account? '}
-                <button
-                  onClick={() => {
-                    setIsLogin(!isLogin)
-                    setError(null)
-                    setLoginData({ email: '', password: '' })
-                    setRegisterData({ name: '', email: '', password: '', phone: '', role: 'PATIENT' })
-                  }}
-                  className="text-blue-600 hover:text-blue-700 font-semibold"
-                >
-                  {isLogin ? 'Sign Up' : 'Sign In'}
-                </button>
-              </p>
-            </div>
+            {/* Demo hint — only visible in development builds */}
+            {isLogin && import.meta.env.DEV && (
+              <div className="mt-6 p-4 bg-slate-50 rounded-xl border border-slate-100">
+                <p className="text-xs font-medium text-slate-600 mb-1.5">Demo credentials</p>
+                <p className="text-xs text-slate-500">
+                  <code className="bg-white px-1.5 py-0.5 rounded text-slate-700 font-mono">demo@patient.com</code>
+                  {' / '}
+                  <code className="bg-white px-1.5 py-0.5 rounded text-slate-700 font-mono">demo123</code>
+                </p>
+              </div>
+            )}
           </div>
-        </div>
-      </motion.div>
+        </motion.div>
+      </div>
     </div>
   )
 }

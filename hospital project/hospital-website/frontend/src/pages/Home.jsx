@@ -1,164 +1,420 @@
-import React, { useState, useEffect } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
-import { motion, useScroll, useTransform } from 'framer-motion'
-import { 
-  MapPin, Search, Calendar, CreditCard, CheckCircle, Shield, Clock, 
-  Star, ArrowRight, Heart, Building2, Users, Stethoscope, Activity,
-  ChevronRight, Play, Sparkles
+import React from 'react'
+import { Link } from 'react-router-dom'
+import { motion } from 'framer-motion'
+import {
+  ArrowRight, Search, Shield, Clock, Star, Heart,
+  Stethoscope, Calendar, Zap, Users, CheckCircle2,
+  Building2, Activity, ChevronRight, Phone
 } from 'lucide-react'
 
-// Animated counter component
-function AnimatedCounter({ end, duration = 2, suffix = '' }) {
-  const [count, setCount] = useState(0)
-  
-  useEffect(() => {
-    let startTime
-    const step = (timestamp) => {
-      if (!startTime) startTime = timestamp
-      const progress = Math.min((timestamp - startTime) / (duration * 1000), 1)
-      setCount(Math.floor(progress * end))
-      if (progress < 1) requestAnimationFrame(step)
-    }
-    requestAnimationFrame(step)
-  }, [end, duration])
-  
-  return <span>{count.toLocaleString()}{suffix}</span>
+const fadeUp = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] }
 }
 
-// Floating elements for hero background
-function FloatingElements() {
-  const elements = [
-    { icon: Heart, x: '10%', y: '20%', delay: 0, size: 'w-8 h-8' },
-    { icon: Stethoscope, x: '85%', y: '15%', delay: 0.5, size: 'w-10 h-10' },
-    { icon: Activity, x: '75%', y: '70%', delay: 1, size: 'w-6 h-6' },
-    { icon: Building2, x: '15%', y: '75%', delay: 1.5, size: 'w-8 h-8' },
-  ]
+const stagger = {
+  animate: { transition: { staggerChildren: 0.08 } }
+}
 
+function Hero() {
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {elements.map((el, i) => {
-        const Icon = el.icon
-        return (
+    <section className="relative min-h-[85vh] flex items-center overflow-hidden">
+      {/* Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-primary-50/30" />
+      <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-bl from-primary-100/40 via-primary-50/20 to-transparent rounded-full blur-3xl" />
+      <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-gradient-to-tr from-emerald-100/30 via-emerald-50/10 to-transparent rounded-full blur-3xl" />
+      
+      {/* Grid pattern */}
+      <div className="absolute inset-0 opacity-[0.03]"
+        style={{ backgroundImage: 'radial-gradient(circle, #6366f1 1px, transparent 1px)', backgroundSize: '32px 32px' }}
+      />
+
+      <div className="container-custom relative z-10 py-20">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+          {/* Left */}
           <motion.div
-            key={i}
-            initial={{ opacity: 0, scale: 0 }}
-            animate={{ opacity: 0.15, scale: 1 }}
-            transition={{ delay: el.delay, duration: 0.5 }}
-            style={{ left: el.x, top: el.y }}
-            className="absolute"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
           >
-            <motion.div
-              animate={{ y: [0, -15, 0] }}
-              transition={{ duration: 4 + i, repeat: Infinity, ease: "easeInOut" }}
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.1 }}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-primary-50 rounded-full 
+                        border border-primary-100 mb-6"
             >
-              <Icon className={`${el.size} text-primary-600`} />
+              <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+              <span className="text-sm font-medium text-primary-700">Trusted by 50,000+ patients</span>
             </motion.div>
+
+            <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold text-slate-900 leading-[1.1] tracking-tight">
+              Your health,{' '}
+              <span className="gradient-text">simplified.</span>
+            </h1>
+
+            <p className="mt-6 text-lg text-slate-500 leading-relaxed max-w-lg">
+              Book appointments with top doctors instantly. No waiting rooms, 
+              no phone calls — just seamless healthcare at your fingertips.
+            </p>
+
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link to="/hospitals" className="btn-primary">
+                <Search className="w-4 h-4" />
+                Find a Doctor
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+              <a href="#how-it-works" className="btn-outline">
+                How it works
+              </a>
+            </div>
+
+            {/* Trust indicators */}
+            <div className="mt-12 flex items-center gap-6">
+              {[
+                { icon: Shield, label: 'Secure & Private' },
+                { icon: Clock, label: 'Instant Booking' },
+                { icon: Star, label: '4.9 Rated' },
+              ].map((item, i) => (
+                <motion.div 
+                  key={item.label}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 + i * 0.1 }}
+                  className="flex items-center gap-2 text-sm text-slate-500"
+                >
+                  <item.icon className="w-4 h-4 text-primary-500" />
+                  {item.label}
+                </motion.div>
+              ))}
+            </div>
           </motion.div>
-        )
-      })}
-    </div>
-  )
-}
 
-// Feature card component
-function FeatureCard({ icon: Icon, title, description, delay }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ delay, duration: 0.5 }}
-      whileHover={{ y: -5 }}
-      className="bg-white rounded-2xl p-6 shadow-soft hover:shadow-soft-lg transition-all duration-300"
-    >
-      <div className="w-14 h-14 bg-gradient-to-br from-primary-100 to-secondary-100 
-                    rounded-xl flex items-center justify-center mb-4">
-        <Icon className="w-7 h-7 text-primary-600" />
-      </div>
-      <h3 className="font-display font-semibold text-lg text-slate-800 mb-2">{title}</h3>
-      <p className="text-slate-600 text-sm leading-relaxed">{description}</p>
-    </motion.div>
-  )
-}
+          {/* Right - Decorative Card */}
+          <motion.div
+            initial={{ opacity: 0, x: 40, scale: 0.95 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            className="hidden lg:block relative"
+          >
+            <div className="relative">
+              {/* Main card */}
+              <div className="bg-white rounded-3xl shadow-soft-2xl border border-slate-200/50 p-8">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-14 h-14 bg-gradient-to-br from-primary-500 to-primary-600 
+                                rounded-2xl flex items-center justify-center shadow-lg shadow-primary-500/25">
+                    <Stethoscope className="w-7 h-7 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-slate-900">Dr. Sarah Chen</h3>
+                    <p className="text-sm text-slate-500">Cardiologist</p>
+                  </div>
+                </div>
+                
+                <div className="space-y-3 mb-6">
+                  {['Today, 10:00 AM', 'Tomorrow, 2:30 PM', 'Jun 16, 11:00 AM'].map((time, i) => (
+                    <div key={i} className={`flex items-center justify-between p-3 rounded-xl ${
+                      i === 0 
+                        ? 'bg-primary-50 border border-primary-200' 
+                        : 'bg-slate-50 border border-slate-100'
+                    }`}>
+                      <div className="flex items-center gap-3">
+                        <Calendar className={`w-4 h-4 ${i === 0 ? 'text-primary-600' : 'text-slate-400'}`} />
+                        <span className={`text-sm font-medium ${i === 0 ? 'text-primary-700' : 'text-slate-600'}`}>{time}</span>
+                      </div>
+                      {i === 0 && (
+                        <span className="badge-emerald">Available</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
 
-// Step card for how it works
-function StepCard({ number, title, description, icon: Icon, isLast }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, x: -20 }}
-      whileInView={{ opacity: 1, x: 0 }}
-      viewport={{ once: true }}
-      transition={{ delay: number * 0.15, duration: 0.5 }}
-      className="relative flex gap-4"
-    >
-      {/* Connector line */}
-      {!isLast && (
-        <div className="absolute left-6 top-14 w-0.5 h-[calc(100%-2rem)] bg-gradient-to-b from-primary-300 to-secondary-300" />
-      )}
-      
-      {/* Step number */}
-      <div className="relative z-10">
-        <motion.div
-          whileHover={{ scale: 1.1, rotate: 5 }}
-          className="w-12 h-12 bg-gradient-to-br from-primary-500 to-secondary-500 
-                    rounded-xl flex items-center justify-center text-white font-bold shadow-soft"
-        >
-          {number}
-        </motion.div>
-      </div>
-      
-      {/* Content */}
-      <div className="flex-1 pb-8">
-        <div className="flex items-center gap-2 mb-1">
-          <Icon className="w-5 h-5 text-primary-500" />
-          <h3 className="font-display font-semibold text-lg text-slate-800">{title}</h3>
+                <button className="w-full btn-primary justify-center">
+                  Book Appointment
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Floating badges */}
+              <motion.div
+                animate={{ y: [0, -8, 0] }}
+                transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                className="absolute -top-4 -right-4 bg-white rounded-2xl shadow-soft-lg border border-slate-100 p-3"
+              >
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-slate-900">Confirmed</p>
+                    <p className="text-[10px] text-slate-400">Just now</p>
+                  </div>
+                </div>
+              </motion.div>
+
+              <motion.div
+                animate={{ y: [0, -6, 0] }}
+                transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+                className="absolute -bottom-4 -left-4 bg-white rounded-2xl shadow-soft-lg border border-slate-100 p-3"
+              >
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 bg-primary-100 rounded-lg flex items-center justify-center">
+                    <Activity className="w-4 h-4 text-primary-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-slate-900">150+ Doctors</p>
+                    <p className="text-[10px] text-slate-400">Online now</p>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          </motion.div>
         </div>
-        <p className="text-slate-600 text-sm leading-relaxed">{description}</p>
       </div>
-    </motion.div>
+    </section>
   )
 }
 
-// Stats section
 function StatsSection() {
   const stats = [
-    { value: 150, suffix: '+', label: 'Partner Hospitals', icon: Building2 },
-    { value: 500, suffix: '+', label: 'Expert Doctors', icon: Users },
-    { value: 50000, suffix: '+', label: 'Happy Patients', icon: Heart },
-    { value: 98, suffix: '%', label: 'Satisfaction Rate', icon: Star },
+    { value: '150+', label: 'Hospitals', icon: Building2 },
+    { value: '500+', label: 'Doctors', icon: Stethoscope },
+    { value: '50K+', label: 'Patients', icon: Users },
+    { value: '98%', label: 'Satisfaction', icon: Heart },
   ]
 
   return (
-    <section className="py-16 bg-gradient-to-r from-primary-600 via-primary-500 to-secondary-500 relative overflow-hidden">
-      {/* Background pattern */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute inset-0" style={{
-          backgroundImage: `radial-gradient(circle at 2px 2px, white 1px, transparent 0)`,
-          backgroundSize: '40px 40px'
-        }} />
-      </div>
+    <section className="relative py-16 overflow-hidden">
+      <div className="absolute inset-0 bg-slate-900" />
+      <div className="absolute inset-0 bg-mesh-1 opacity-50" />
       
       <div className="container-custom relative z-10">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-          {stats.map((stat, i) => {
-            const Icon = stat.icon
-            return (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1, duration: 0.5 }}
-                className="text-center text-white"
-              >
-                <Icon className="w-8 h-8 mx-auto mb-3 opacity-80" />
-                <div className="text-3xl md:text-4xl font-bold mb-1">
-                  <AnimatedCounter end={stat.value} suffix={stat.suffix} />
+        <motion.div 
+          variants={stagger}
+          initial="initial"
+          whileInView="animate"
+          viewport={{ once: true, margin: '-50px' }}
+          className="grid grid-cols-2 md:grid-cols-4 gap-8"
+        >
+          {stats.map((stat) => (
+            <motion.div 
+              key={stat.label}
+              variants={fadeUp}
+              className="text-center"
+            >
+              <div className="inline-flex items-center justify-center w-12 h-12 bg-white/10 rounded-2xl mb-4">
+                <stat.icon className="w-6 h-6 text-white/80" />
+              </div>
+              <div className="text-3xl md:text-4xl font-display font-bold text-white">{stat.value}</div>
+              <div className="text-sm text-white/50 mt-1">{stat.label}</div>
+            </motion.div>
+          ))}
+        </motion.div>
+      </div>
+    </section>
+  )
+}
+
+function FeaturesSection() {
+  const features = [
+    {
+      icon: Search,
+      title: 'Smart Search',
+      description: 'Find doctors by specialty, location, and availability. Our smart filters get you the perfect match.',
+      color: 'from-primary-500 to-primary-600',
+      bg: 'bg-primary-50',
+    },
+    {
+      icon: Calendar,
+      title: 'Instant Booking',
+      description: 'Book appointments in seconds. Real-time slot availability with instant confirmation.',
+      color: 'from-emerald-500 to-emerald-600',
+      bg: 'bg-emerald-50',
+    },
+    {
+      icon: Zap,
+      title: 'Secure Payments',
+      description: 'Pay online or at the hospital. PCI-compliant payment processing with multiple options.',
+      color: 'from-amber-500 to-orange-500',
+      bg: 'bg-amber-50',
+    },
+    {
+      icon: Shield,
+      title: 'Your Privacy',
+      description: 'HIPAA-compliant data handling. Your medical information stays private and encrypted.',
+      color: 'from-violet-500 to-purple-600',
+      bg: 'bg-violet-50',
+    },
+  ]
+
+  return (
+    <section className="section bg-white" id="features">
+      <div className="container-custom">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="text-center mb-16"
+        >
+          <span className="badge-primary mb-4 inline-flex">Why CityHealth</span>
+          <h2 className="font-display text-3xl md:text-4xl font-bold text-slate-900 tracking-tight">
+            Everything you need,{' '}
+            <span className="gradient-text">one platform</span>
+          </h2>
+          <p className="mt-4 text-slate-500 max-w-lg mx-auto">
+            From finding the right doctor to managing your health records — we've got it all covered.
+          </p>
+        </motion.div>
+
+        <motion.div 
+          variants={stagger}
+          initial="initial"
+          whileInView="animate"
+          viewport={{ once: true, margin: '-50px' }}
+          className="grid md:grid-cols-2 lg:grid-cols-4 gap-6"
+        >
+          {features.map((feature) => (
+            <motion.div 
+              key={feature.title}
+              variants={fadeUp}
+              className="card-interactive p-6 group"
+            >
+              <div className={`w-12 h-12 ${feature.bg} rounded-2xl flex items-center justify-center 
+                            mb-5 group-hover:scale-110 transition-transform duration-300`}>
+                <div className={`w-10 h-10 bg-gradient-to-br ${feature.color} rounded-xl flex items-center justify-center`}>
+                  <feature.icon className="w-5 h-5 text-white" />
                 </div>
-                <div className="text-sm text-white/80">{stat.label}</div>
-              </motion.div>
-            )
-          })}
+              </div>
+              <h3 className="font-semibold text-slate-900 mb-2">{feature.title}</h3>
+              <p className="text-sm text-slate-500 leading-relaxed">{feature.description}</p>
+            </motion.div>
+          ))}
+        </motion.div>
+      </div>
+    </section>
+  )
+}
+
+function HowItWorks() {
+  const steps = [
+    {
+      number: '01',
+      title: 'Search & Choose',
+      description: 'Browse hospitals and doctors. Filter by specialty, location, and availability.',
+      icon: Search,
+    },
+    {
+      number: '02',
+      title: 'Pick a Time',
+      description: 'Select your preferred date and time slot from real-time availability.',
+      icon: Clock,
+    },
+    {
+      number: '03',
+      title: 'Confirm & Pay',
+      description: 'Review details, pay securely online or choose to pay at the hospital.',
+      icon: CheckCircle2,
+    },
+  ]
+
+  return (
+    <section className="section bg-slate-50" id="how-it-works">
+      <div className="container-custom">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="text-center mb-16"
+        >
+          <span className="badge-primary mb-4 inline-flex">How it Works</span>
+          <h2 className="font-display text-3xl md:text-4xl font-bold text-slate-900 tracking-tight">
+            Three steps to better health
+          </h2>
+        </motion.div>
+
+        <motion.div 
+          variants={stagger}
+          initial="initial"
+          whileInView="animate"
+          viewport={{ once: true, margin: '-50px' }}
+          className="grid md:grid-cols-3 gap-8 relative"
+        >
+          {/* Connector line */}
+          <div className="hidden md:block absolute top-24 left-[20%] right-[20%] h-px bg-gradient-to-r from-primary-200 via-primary-300 to-primary-200" />
+
+          {steps.map((step, i) => (
+            <motion.div 
+              key={step.number}
+              variants={fadeUp}
+              className="relative text-center"
+            >
+              <div className="relative inline-flex mb-6">
+                <div className="w-16 h-16 bg-white rounded-2xl shadow-soft-lg border border-slate-100 
+                              flex items-center justify-center relative z-10">
+                  <step.icon className="w-7 h-7 text-primary-600" />
+                </div>
+                <span className="absolute -top-2 -right-2 w-7 h-7 bg-primary-600 text-white text-xs 
+                              font-bold rounded-full flex items-center justify-center shadow-md">
+                  {step.number}
+                </span>
+              </div>
+              <h3 className="font-display text-lg font-semibold text-slate-900 mb-2">{step.title}</h3>
+              <p className="text-sm text-slate-500 leading-relaxed max-w-xs mx-auto">{step.description}</p>
+            </motion.div>
+          ))}
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.3 }}
+          className="text-center mt-12"
+        >
+          <Link to="/hospitals" className="btn-primary">
+            Get Started
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+        </motion.div>
+      </div>
+    </section>
+  )
+}
+
+function CTASection() {
+  return (
+    <section className="section">
+      <div className="container-custom">
+        <div className="relative bg-slate-900 rounded-3xl overflow-hidden">
+          <div className="absolute inset-0 bg-mesh-1 opacity-30" />
+          <div className="absolute top-0 right-0 w-96 h-96 bg-primary-600/20 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 left-0 w-64 h-64 bg-emerald-600/10 rounded-full blur-3xl" />
+          
+          <div className="relative z-10 px-8 py-16 md:px-16 md:py-20 text-center">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+            >
+              <h2 className="font-display text-3xl md:text-4xl font-bold text-white tracking-tight mb-4">
+                Ready to take control of your health?
+              </h2>
+              <p className="text-white/60 max-w-md mx-auto mb-8">
+                Join thousands of patients who book their appointments with CityHealth every day.
+              </p>
+              <div className="flex flex-wrap justify-center gap-3">
+                <Link to="/hospitals" className="btn bg-white text-slate-900 hover:bg-white/90 px-6 py-3">
+                  Find a Doctor
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+                <a href="tel:108" className="btn border border-white/20 text-white hover:bg-white/10 px-6 py-3">
+                  <Phone className="w-4 h-4" />
+                  Emergency: 108
+                </a>
+              </div>
+            </motion.div>
+          </div>
         </div>
       </div>
     </section>
@@ -166,497 +422,13 @@ function StatsSection() {
 }
 
 export default function Home() {
-  const navigate = useNavigate()
-  const { scrollYProgress } = useScroll()
-  const opacity = useTransform(scrollYProgress, [0, 0.2], [1, 0])
-
-  const features = [
-    {
-      icon: MapPin,
-      title: 'Find Nearby Hospitals',
-      description: 'Discover hospitals and clinics near your location with real-time availability updates.'
-    },
-    {
-      icon: Stethoscope,
-      title: 'Expert Doctors',
-      description: 'Browse through our network of verified specialists across all medical departments.'
-    },
-    {
-      icon: Calendar,
-      title: 'Easy Scheduling',
-      description: 'Book appointments instantly with our smart scheduling system. No phone calls needed.'
-    },
-    {
-      icon: CreditCard,
-      title: 'Secure Payments',
-      description: 'Pay online securely or choose to pay at the hospital. Multiple payment options available.'
-    },
-    {
-      icon: Clock,
-      title: 'Save Time',
-      description: 'No more waiting in queues. Get instant confirmations and digital receipts.'
-    },
-    {
-      icon: Shield,
-      title: 'Trusted & Secure',
-      description: 'Your health data is protected with enterprise-grade security and encryption.'
-    }
-  ]
-
-  const steps = [
-    {
-      title: 'Share Your Location',
-      description: 'Allow location access to discover the best hospitals and clinics nearby.',
-      icon: MapPin
-    },
-    {
-      title: 'Choose Hospital & Doctor',
-      description: 'Browse through hospitals, check ratings, and select your preferred specialist.',
-      icon: Building2
-    },
-    {
-      title: 'Select Date & Time',
-      description: 'Pick a convenient slot from the real-time availability calendar.',
-      icon: Calendar
-    },
-    {
-      title: 'Confirm & Pay',
-      description: 'Complete your booking with secure online payment or pay at the hospital.',
-      icon: CheckCircle
-    }
-  ]
-
   return (
-    <div className="min-h-screen bg-surface-50">
-      {/* Hero Section */}
-      <section className="relative min-h-[90vh] flex items-center overflow-hidden">
-        {/* Background gradient */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary-50 via-white to-secondary-50" />
-        
-        {/* Floating elements */}
-        <FloatingElements />
-        
-        {/* Decorative circles */}
-        <div className="absolute -right-40 -top-40 w-96 h-96 bg-primary-100 rounded-full blur-3xl opacity-50" />
-        <div className="absolute -left-40 -bottom-40 w-96 h-96 bg-secondary-100 rounded-full blur-3xl opacity-50" />
-
-        <div className="container-custom relative z-10 py-20">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            {/* Left content */}
-            <motion.div
-              initial={{ opacity: 0, x: -50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.7 }}
-            >
-              {/* Badge */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-full 
-                          shadow-soft mb-6 border border-primary-100"
-              >
-                <Sparkles className="w-4 h-4 text-primary-500" />
-                <span className="text-sm font-medium text-primary-600">
-                  Trusted by 50,000+ patients
-                </span>
-              </motion.div>
-
-              {/* Headline */}
-              <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 leading-tight mb-6">
-                Book Hospital
-                <br />
-                <span className="bg-gradient-to-r from-primary-600 to-secondary-500 bg-clip-text text-transparent">
-                  Appointments
-                </span>
-                <br />
-                Near You — <span className="text-primary-600">Instantly</span>
-              </h1>
-
-              {/* Subtitle */}
-              <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-lg">
-                Skip the waiting room. Find trusted hospitals, choose expert doctors, 
-                and book your appointment in minutes with secure online payments.
-              </p>
-
-              {/* CTA Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4 mb-8">
-                <motion.button
-                  onClick={() => navigate('/hospitals')}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="group relative px-8 py-4 bg-gradient-to-r from-primary-500 to-primary-600 
-                            text-white rounded-2xl font-semibold shadow-soft hover:shadow-glow 
-                            transition-all duration-300 overflow-hidden"
-                >
-                  <span className="relative z-10 flex items-center justify-center gap-2">
-                    <MapPin className="w-5 h-5" />
-                    Find Hospitals Near Me
-                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                  </span>
-                  {/* Animated ring */}
-                  <motion.span
-                    className="absolute inset-0 rounded-2xl border-2 border-primary-400"
-                    animate={{ scale: [1, 1.05, 1], opacity: [0.5, 0, 0.5] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  />
-                </motion.button>
-
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="group px-8 py-4 border-2 border-primary-200 text-primary-600 
-                            rounded-2xl font-semibold hover:bg-primary-50 transition-all 
-                            duration-300 flex items-center justify-center gap-2"
-                >
-                  <Play className="w-5 h-5" />
-                  Watch How It Works
-                </motion.button>
-              </div>
-
-              {/* Trust indicators */}
-              <div className="flex items-center gap-6 text-sm text-slate-500">
-                <div className="flex items-center gap-2">
-                  <Shield className="w-4 h-4 text-green-500" />
-                  <span>Secure & Private</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-500" />
-                  <span>Verified Doctors</span>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Right content - Illustration/Card */}
-            <motion.div
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.7, delay: 0.2 }}
-              className="hidden lg:block relative"
-            >
-              {/* Main card */}
-              <motion.div
-                animate={{ y: [0, -10, 0] }}
-                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                className="relative"
-              >
-                <div className="bg-white rounded-3xl shadow-soft-xl p-8 relative z-10">
-                  {/* Mock hospital card */}
-                  <div className="flex items-start gap-4 mb-6">
-                    <div className="w-16 h-16 bg-gradient-to-br from-primary-100 to-secondary-100 
-                                  rounded-2xl flex items-center justify-center">
-                      <Building2 className="w-8 h-8 text-primary-600" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-slate-800">City General Hospital</h3>
-                      <p className="text-sm text-slate-500">2.5 km away • Open 24/7</p>
-                      <div className="flex items-center gap-1 mt-1">
-                        {[1,2,3,4,5].map(i => (
-                          <Star key={i} className="w-4 h-4 text-yellow-400" fill="#FACC15" />
-                        ))}
-                        <span className="text-sm text-slate-600 ml-1">(4.8)</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Specialties */}
-                  <div className="flex flex-wrap gap-2 mb-6">
-                    {['Cardiology', 'Neurology', 'Pediatrics'].map(s => (
-                      <span key={s} className="px-3 py-1 bg-primary-50 text-primary-600 
-                                              rounded-full text-sm font-medium">
-                        {s}
-                      </span>
-                    ))}
-                  </div>
-
-                  {/* Mock doctor */}
-                  <div className="flex items-center justify-between p-4 bg-surface-100 rounded-xl">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-gradient-to-br from-secondary-400 to-secondary-500 
-                                    rounded-xl flex items-center justify-center text-white font-bold">
-                        DR
-                      </div>
-                      <div>
-                        <p className="font-medium text-slate-800">Dr. Priya Sharma</p>
-                        <p className="text-sm text-slate-500">Cardiologist • 15 yrs exp</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-lg font-bold text-primary-600">₹500</p>
-                      <p className="text-xs text-green-600">Available Today</p>
-                    </div>
-                  </div>
-
-                  {/* CTA */}
-                  <button className="w-full mt-4 py-3 bg-gradient-to-r from-primary-500 to-secondary-500 
-                                    text-white rounded-xl font-semibold shadow-soft">
-                    Book Appointment
-                  </button>
-                </div>
-              </motion.div>
-
-              {/* Floating badge */}
-              <motion.div
-                initial={{ opacity: 0, scale: 0 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.8 }}
-                className="absolute -left-8 top-1/4 bg-white rounded-2xl shadow-soft-lg p-4 z-20"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
-                    <CheckCircle className="w-5 h-5 text-green-600" />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-slate-800 text-sm">Booking Confirmed!</p>
-                    <p className="text-xs text-slate-500">Dr. Sharma • 10:30 AM</p>
-                  </div>
-                </div>
-              </motion.div>
-
-              {/* Floating rating */}
-              <motion.div
-                initial={{ opacity: 0, scale: 0 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 1 }}
-                className="absolute -right-4 bottom-1/4 bg-white rounded-2xl shadow-soft-lg p-4 z-20"
-              >
-                <div className="flex items-center gap-2">
-                  <Star className="w-6 h-6 text-yellow-400" fill="#FACC15" />
-                  <span className="font-bold text-slate-800">4.9</span>
-                  <span className="text-sm text-slate-500">Excellent</span>
-                </div>
-              </motion.div>
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* Stats Section */}
+    <div className="min-h-screen">
+      <Hero />
       <StatsSection />
-
-      {/* Features Section */}
-      <section className="py-20 bg-white">
-        <div className="container-custom">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <span className="inline-block px-4 py-2 bg-primary-50 text-primary-600 
-                          rounded-full text-sm font-medium mb-4">
-              Why Choose Us
-            </span>
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-slate-900 mb-4">
-              Healthcare Made <span className="gradient-text">Simple & Accessible</span>
-            </h2>
-            <p className="text-slate-600 max-w-2xl mx-auto">
-              We're reimagining how you access healthcare. From finding the right doctor 
-              to booking and payment — everything in one seamless experience.
-            </p>
-          </motion.div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {features.map((feature, i) => (
-              <FeatureCard key={i} {...feature} delay={i * 0.1} />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* How It Works Section */}
-      <section className="py-20 bg-surface-100">
-        <div className="container-custom">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-            >
-              <span className="inline-block px-4 py-2 bg-secondary-50 text-secondary-600 
-                            rounded-full text-sm font-medium mb-4">
-                How It Works
-              </span>
-              <h2 className="font-display text-3xl md:text-4xl font-bold text-slate-900 mb-4">
-                Book Your Appointment in
-                <br />
-                <span className="gradient-text">4 Simple Steps</span>
-              </h2>
-              <p className="text-slate-600 mb-8">
-                Our streamlined process ensures you get the care you need without the hassle. 
-                Everything is designed to save your time.
-              </p>
-
-              <div className="space-y-2">
-                {steps.map((step, i) => (
-                  <StepCard 
-                    key={i} 
-                    number={i + 1} 
-                    {...step} 
-                    isLast={i === steps.length - 1}
-                  />
-                ))}
-              </div>
-            </motion.div>
-
-            {/* Right illustration */}
-            <motion.div
-              initial={{ opacity: 0, x: 30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              className="hidden lg:block"
-            >
-              <div className="relative">
-                {/* Phone mockup */}
-                <div className="bg-slate-800 rounded-[3rem] p-4 shadow-soft-xl max-w-sm mx-auto">
-                  <div className="bg-white rounded-[2.5rem] overflow-hidden">
-                    {/* Status bar */}
-                    <div className="bg-slate-100 px-6 py-3 flex items-center justify-between">
-                      <span className="text-xs font-medium">9:41</span>
-                      <div className="flex items-center gap-1">
-                        <div className="w-4 h-2 bg-slate-400 rounded-sm" />
-                      </div>
-                    </div>
-                    
-                    {/* App content */}
-                    <div className="p-6">
-                      <h3 className="font-semibold text-slate-800 mb-4">Select Time Slot</h3>
-                      
-                      {/* Date selector */}
-                      <div className="flex gap-2 mb-4">
-                        {['Mon', 'Tue', 'Wed', 'Thu'].map((day, i) => (
-                          <div key={day} className={`flex-1 py-2 rounded-lg text-center text-sm 
-                            ${i === 1 ? 'bg-primary-500 text-white' : 'bg-surface-100 text-slate-600'}`}>
-                            <div className="font-medium">{day}</div>
-                            <div className="text-xs">{15 + i}</div>
-                          </div>
-                        ))}
-                      </div>
-                      
-                      {/* Time slots */}
-                      <div className="grid grid-cols-3 gap-2">
-                        {['9:00', '10:30', '11:00', '2:00', '3:30', '4:00'].map((time, i) => (
-                          <div key={time} className={`py-2 rounded-lg text-center text-sm 
-                            ${i === 1 ? 'bg-secondary-500 text-white' : 'bg-surface-100 text-slate-600'}`}>
-                            {time}
-                          </div>
-                        ))}
-                      </div>
-
-                      {/* Confirm button */}
-                      <button className="w-full mt-6 py-3 bg-gradient-to-r from-primary-500 to-secondary-500 
-                                        text-white rounded-xl font-medium text-sm">
-                        Confirm Booking
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Decorative elements */}
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                  className="absolute -z-10 -right-10 -top-10 w-40 h-40 border-2 border-dashed 
-                            border-primary-200 rounded-full"
-                />
-              </div>
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-br from-primary-600 via-primary-500 to-secondary-500 relative overflow-hidden">
-        {/* Background pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute inset-0" style={{
-            backgroundImage: `radial-gradient(circle at 2px 2px, white 1px, transparent 0)`,
-            backgroundSize: '40px 40px'
-          }} />
-        </div>
-
-        <div className="container-custom relative z-10 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-4">
-              Ready to Book Your Appointment?
-            </h2>
-            <p className="text-white/80 max-w-xl mx-auto mb-8">
-              Join thousands of patients who trust CityHealth for their healthcare needs. 
-              Start your journey to better health today.
-            </p>
-            
-            <motion.button
-              onClick={() => navigate('/hospitals')}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="px-8 py-4 bg-white text-primary-600 rounded-2xl font-semibold 
-                        shadow-soft-xl hover:shadow-2xl transition-all duration-300
-                        flex items-center gap-2 mx-auto"
-            >
-              Get Started Now
-              <ArrowRight className="w-5 h-5" />
-            </motion.button>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="bg-slate-900 text-white py-16">
-        <div className="container-custom">
-          <div className="grid md:grid-cols-4 gap-8 mb-12">
-            {/* Brand */}
-            <div className="md:col-span-2">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-secondary-500 
-                              rounded-xl flex items-center justify-center">
-                  <Heart className="w-6 h-6 text-white" fill="white" />
-                </div>
-                <div>
-                  <div className="font-display font-bold text-xl">CityHealth</div>
-                  <div className="text-sm text-slate-400">Healthcare Made Simple</div>
-                </div>
-              </div>
-              <p className="text-slate-400 max-w-md">
-                Your trusted partner for finding and booking hospital appointments. 
-                We connect patients with the best healthcare providers in their area.
-              </p>
-            </div>
-
-            {/* Links */}
-            <div>
-              <h4 className="font-semibold mb-4">Quick Links</h4>
-              <ul className="space-y-2 text-slate-400">
-                <li><Link to="/hospitals" className="hover:text-white transition-colors">Find Hospitals</Link></li>
-                <li><Link to="/" className="hover:text-white transition-colors">How It Works</Link></li>
-                <li><Link to="/" className="hover:text-white transition-colors">About Us</Link></li>
-                <li><Link to="/" className="hover:text-white transition-colors">Contact</Link></li>
-              </ul>
-            </div>
-
-            {/* Contact */}
-            <div>
-              <h4 className="font-semibold mb-4">Emergency</h4>
-              <div className="text-2xl font-bold text-red-400 mb-2">108</div>
-              <p className="text-slate-400 text-sm">24/7 Emergency Helpline</p>
-            </div>
-          </div>
-
-          {/* Bottom */}
-          <div className="border-t border-slate-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-            <div className="text-slate-400 text-sm">
-              © 2026 CityHealth. All rights reserved.
-            </div>
-            <div className="flex items-center gap-4 text-sm text-slate-400">
-              <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
-              <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <FeaturesSection />
+      <HowItWorks />
+      <CTASection />
     </div>
   )
 }

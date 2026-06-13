@@ -1,176 +1,102 @@
-import crypto from 'crypto-js'
-
-// PayU test credentials (from environment or hardcoded for demo)
-const PAYU_MID = import.meta.env.VITE_PAYU_MID || '13411988'
-const PAYU_SALT = import.meta.env.VITE_PAYU_SALT || 'xzfQiBqnkHJ8xobmcxq2yxc5CIm60atm'
-const PAYU_TEST_URL = 'https://test.payumoney.com/mweb/'
-const PAYU_PROD_URL = 'https://secure.payumoney.com/mweb/'
-
-// Use mock mode by default for development (set VITE_PAYU_MOCK=false to use real PayU)
-const PAYU_MOCK_MODE = import.meta.env.VITE_PAYU_MOCK !== 'false'
-
-// Use test URL by default
-const PAYU_URL = import.meta.env.VITE_PAYU_ENV === 'production' ? PAYU_PROD_URL : PAYU_TEST_URL
+import api from './api'
 
 /**
- * Generate PayU hash for payment authentication
- * Hash format: SHA512(salt|key|param1|param2|...)
- * PayU requires: hash = SHA512(salt + key + txnid + amount + productinfo + firstname + email)
+ * Initiate a PayU payment by asking the backend to generate the signed hash.
+ *
+ * The SALT never leaves the server — the browser receives a ready-to-submit set
+ * of form fields with a pre-computed SHA-512 hash.  If the server is running in
+ * mock mode it returns { mockMode: true } and we show a local test dialog instead.
+ *
+ * @param {object} opts
+ * @param {string} opts.appointmentId  - Server-issued appointment ID
+ * @param {string} opts.firstName      - Payer's first name
+ * @param {string} opts.email          - Payer's email
+ * @param {string} opts.phone          - Payer's phone (digits only)
  */
-export const generatePayUHash = (txnId, amount, productInfo, firstName, email) => {
-  // Build the string to be hashed (salt + key + rest of params in order)
-  const hashString = `${PAYU_SALT}|${PAYU_MID}|${txnId}|${amount}|${productInfo}|${firstName}|${email}`
-
-  // Generate SHA512 hash using crypto-js
-  const hash = crypto.SHA512(hashString).toString()
-  return hash
-}
-
-/**
- * Initiate PayU payment checkout
- * In mock mode: Shows a test dialog and simulates payment
- * In real mode: Creates a form and submits it to PayU's hosted checkout page
- */
-export const initiatePayUCheckout = (paymentDetails) => {
-  const {
-    txnId,
-    amount,
-    productInfo,
+export async function initiatePayUCheckout({ appointmentId, firstName, email, phone }) {
+  // Ask the backend to sign the payment. Amount is read from the DB server-side —
+  // the client never supplies or touches it.
+  const { data } = await api.post('/payments/initiate', {
+    appointmentId,
     firstName,
     email,
     phone,
-    address,
-    city,
-    state,
-    zipcode,
-    country = 'India',
-  } = paymentDetails
+  })
 
-  // Generate hash
-  const hash = generatePayUHash(txnId, amount, productInfo, firstName, email)
-
-  // Mock mode: Simulate PayU checkout locally
-  if (PAYU_MOCK_MODE) {
-    return simulatePayUCheckout({
-      txnId,
-      amount,
-      productInfo,
-      firstName,
-      email,
-      phone,
-      address,
-      city,
-      state,
-      zipcode,
-      country,
-      hash,
-    })
+  if (data.mockMode) {
+    return simulateMockCheckout(data)
   }
 
-  // Real mode: Create form and submit to PayU
+  // Real mode: build a hidden form with the server-supplied fields and submit it.
+  submitPayUForm(data)
+}
+
+/**
+ * Build and auto-submit a PayU-compatible HTML form.
+ * surl/furl are added client-side because they are not part of the signed hash.
+ */
+function submitPayUForm(data) {
   const form = document.createElement('form')
   form.method = 'POST'
-  form.action = PAYU_URL
+  form.action = data.payuUrl
   form.style.display = 'none'
 
-  // Add required fields to form
   const fields = {
-    key: PAYU_MID,
-    txnid: txnId,
-    amount: amount,
-    productinfo: productInfo,
-    firstname: firstName,
-    email: email,
-    phone: phone,
-    address1: address || '',
-    city: city || '',
-    state: state || '',
-    zipcode: zipcode || '',
-    country: country,
-    hash: hash,
-    surl: `${window.location.origin}/book-success`, // Success redirect URL
-    furl: `${window.location.origin}/book-failed`, // Failure redirect URL
+    key: data.key,
+    txnid: data.txnid,
+    amount: data.amount,
+    productinfo: data.productinfo,
+    firstname: data.firstname,
+    email: data.email,
+    phone: data.phone,
+    hash: data.hash,
+    surl: `${window.location.origin}/book-success`,
+    furl: `${window.location.origin}/book-failed`,
     service_provider: 'payu_paisa',
   }
 
-  // Append fields to form
-  Object.keys(fields).forEach((key) => {
+  for (const [name, value] of Object.entries(fields)) {
     const input = document.createElement('input')
     input.type = 'hidden'
-    input.name = key
-    input.value = fields[key]
+    input.name = name
+    input.value = value
     form.appendChild(input)
-  })
+  }
 
-  // Append form to body and submit
   document.body.appendChild(form)
   form.submit()
 }
 
 /**
- * Simulate PayU checkout for local development/testing
- * Shows a dialog for user to approve/reject payment
+ * Mock checkout used when the server returns mockMode: true.
+ * Shows a browser dialog so developers can test the full booking flow
+ * without real PayU credentials.
  */
-const simulatePayUCheckout = (paymentDetails) => {
-  const { txnId, amount, firstName, email } = paymentDetails
-
-  // Create a simple modal for testing
-  const userChoice = window.confirm(
-    `🧪 PayU Mock Mode (Test)\n\nTransaction ID: ${txnId}\nAmount: ₹${amount}\nName: ${firstName}\nEmail: ${email}\n\nClick OK to simulate successful payment, or Cancel to simulate failure.`
+function simulateMockCheckout(data) {
+  const ok = window.confirm(
+    `PayU Mock Mode\n\nTransaction: ${data.txnid}\nAmount: ₹${data.amount}\nName: ${data.firstname}\nEmail: ${data.email}\n\nOK = success   Cancel = failure`
   )
 
-  if (userChoice) {
-    // Simulate success: redirect to success page after a short delay
-    setTimeout(() => {
-      const successParams = new URLSearchParams({
-        status: 'success',
-        txnid: txnId,
-        amount: amount,
-        firstname: firstName,
-        email: email,
-        productinfo: paymentDetails.productInfo,
-        hash: paymentDetails.hash,
-      })
-      window.location.href = `${window.location.origin}/book-success?${successParams.toString()}`
-    }, 1000)
-  } else {
-    // Simulate failure: redirect to failure page after a short delay
-    setTimeout(() => {
-      const failureParams = new URLSearchParams({
-        status: 'failed',
-        txnid: txnId,
-        amount: amount,
-        firstname: firstName,
-        email: email,
-        error: 'Payment declined in mock mode',
-      })
-      window.location.href = `${window.location.origin}/book-failed?${failureParams.toString()}`
-    }, 1000)
-  }
+  const params = new URLSearchParams(
+    ok
+      ? { status: 'success', txnid: data.txnid, amount: data.amount,
+          firstname: data.firstname, email: data.email, productinfo: data.productinfo }
+      : { status: 'failed', txnid: data.txnid, amount: data.amount,
+          firstname: data.firstname, email: data.email, error: 'Declined in mock mode' }
+  )
+
+  const dest = ok ? '/book-success' : '/book-failed'
+  setTimeout(() => {
+    window.location.href = `${window.location.origin}${dest}?${params}`
+  }, 800)
 }
 
 /**
- * Verify PayU payment response (server-side ideally, but can do client-side for demo)
- * This should be called after PayU redirects back with payment response
+ * @deprecated Client-side hash verification is insecure — the SALT would have to
+ * be in the browser bundle for this to work, defeating its purpose.
+ * Verification is handled server-side by POST /api/payments/verify (to be wired up).
  */
-export const verifyPayUResponse = (response) => {
-  // response should contain: status, txnid, amount, hash, etc.
-  if (!response || !response.hash) {
-    return false
-  }
-
-  // Reconstruct the hash to verify
-  const verificationString = `${PAYU_SALT}|${response.status}|${response.txnid}|${response.amount}|${response.productinfo}|${response.firstname}|${response.email}`
-  const expectedHash = crypto.SHA512(verificationString).toString()
-
-  // Compare hashes
-  return response.hash === expectedHash
-}
-
-export default {
-  generatePayUHash,
-  initiatePayUCheckout,
-  verifyPayUResponse,
-  PAYU_MID,
-  PAYU_URL,
+export function verifyPayUResponse(_response) {
+  console.error('[PayU] verifyPayUResponse() is a no-op. Verify payments server-side.')
+  return false
 }
