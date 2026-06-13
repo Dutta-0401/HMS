@@ -282,8 +282,8 @@ export default function Login() {
               )}
             </AnimatePresence>
 
-            {/* Demo hint */}
-            {isLogin && (
+            {/* Demo hint — only visible in development builds */}
+            {isLogin && import.meta.env.DEV && (
               <div className="mt-6 p-4 bg-slate-50 rounded-xl border border-slate-100">
                 <p className="text-xs font-medium text-slate-600 mb-1.5">Demo credentials</p>
                 <p className="text-xs text-slate-500">

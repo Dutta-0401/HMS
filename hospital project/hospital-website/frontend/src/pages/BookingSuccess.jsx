@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { 
-  CheckCircle2, Download, Calendar, ArrowRight, 
-  Home, CreditCard, User, Mail, FileText
+import {
+  CheckCircle2, Download, Calendar, ArrowRight,
+  Home, CreditCard, User, Mail, FileText, Loader2
 } from 'lucide-react'
 import jsPDF from 'jspdf'
+import { getUserAppointments } from '../services/booking'
 
 function Confetti() {
   const particles = Array.from({ length: 40 }).map((_, i) => ({
@@ -48,9 +49,11 @@ function Confetti() {
 
 export default function BookingSuccess() {
   const [searchParams] = useSearchParams()
+  const navigate = useNavigate()
   const [showConfetti, setShowConfetti] = useState(true)
-  
-  const status = searchParams.get('status')
+  const [verifying, setVerifying] = useState(true)
+  const [verified, setVerified] = useState(false)
+
   const txnId = searchParams.get('txnid')
   const amount = searchParams.get('amount')
   const patientName = searchParams.get('firstname')
@@ -60,6 +63,43 @@ export default function BookingSuccess() {
     const timer = setTimeout(() => setShowConfetti(false), 3500)
     return () => clearTimeout(timer)
   }, [])
+
+  // Verify the payment by confirming the appointment exists on the server.
+  // Without this check anyone can navigate to /book-success with arbitrary
+  // URL params and receive an "official" confirmed receipt.
+  useEffect(() => {
+    async function verify() {
+      const token = localStorage.getItem('token')
+      if (!token) {
+        // Not logged in — cannot have a legitimate booking
+        navigate('/login', { replace: true })
+        return
+      }
+      try {
+        const appointments = await getUserAppointments()
+        // Find an appointment whose server-returned ID contains the txnId prefix
+        // (txnId is built as `${appointmentId}-${Date.now()}` in BookingModal)
+        const match = Array.isArray(appointments) && appointments.some(
+          (a) => txnId && (
+            String(a.id) === txnId ||
+            String(txnId).startsWith(String(a.id))
+          )
+        )
+        if (match) {
+          setVerified(true)
+        } else {
+          // No matching appointment — redirect to failure page
+          navigate('/book-failed', { replace: true })
+        }
+      } catch {
+        // Network error: still redirect so we don't display unverified success
+        navigate('/book-failed', { replace: true })
+      } finally {
+        setVerifying(false)
+      }
+    }
+    verify()
+  }, [txnId, navigate])
 
   function downloadReceipt() {
     const doc = new jsPDF()
@@ -101,76 +141,85 @@ export default function BookingSuccess() {
 
   return (
     <>
-      {showConfetti && <Confetti />}
-      
-      <div className="min-h-[70vh] flex items-center justify-center py-12">
-        <motion.div
-          initial={{ opacity: 0, y: 20, scale: 0.95 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="w-full max-w-md mx-auto px-4"
-        >
-          <div className="bg-white rounded-3xl shadow-soft-xl border border-slate-200/60 overflow-hidden text-center">
-            {/* Success Icon */}
-            <div className="pt-10 pb-6">
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-                className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto"
-              >
-                <CheckCircle2 className="w-9 h-9 text-emerald-600" />
-              </motion.div>
-              <h1 className="font-display text-2xl font-bold text-slate-900 mt-4">
-                Payment Successful!
-              </h1>
-              <p className="text-slate-500 mt-1">Your appointment has been confirmed</p>
-            </div>
+      {showConfetti && verified && <Confetti />}
 
-            {/* Details */}
-            <div className="px-8 pb-8">
-              <div className="bg-slate-50 rounded-xl p-4 space-y-3 mb-6">
-                {[
-                  { icon: FileText, label: 'Transaction ID', value: txnId || 'N/A' },
-                  { icon: CreditCard, label: 'Amount Paid', value: `₹${amount || '0'}` },
-                  { icon: User, label: 'Patient', value: patientName || 'N/A' },
-                  { icon: Mail, label: 'Email', value: email || 'N/A' },
-                ].map(item => (
-                  <div key={item.label} className="flex items-center justify-between text-sm">
-                    <span className="flex items-center gap-2 text-slate-500">
-                      <item.icon className="w-4 h-4" />
-                      {item.label}
-                    </span>
-                    <span className="font-medium text-slate-900 truncate ml-4 max-w-[180px]">{item.value}</span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Notification */}
-              <div className="flex items-center gap-3 p-3 bg-primary-50 rounded-xl text-sm text-primary-700 mb-6">
-                <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
-                Confirmation email sent to {email || 'your email'}
-              </div>
-
-              {/* Actions */}
-              <div className="space-y-3">
-                <button onClick={downloadReceipt} className="btn-primary w-full justify-center">
-                  <Download className="w-4 h-4" />
-                  Download Receipt
-                </button>
-                <Link to="/profile" className="btn-outline w-full justify-center">
-                  <Calendar className="w-4 h-4" />
-                  View My Appointments
-                </Link>
-                <Link to="/" className="btn-ghost w-full justify-center">
-                  <Home className="w-4 h-4" />
-                  Back to Home
-                </Link>
-              </div>
-            </div>
+      {verifying ? (
+        <div className="min-h-[70vh] flex items-center justify-center">
+          <div className="flex flex-col items-center gap-4 text-slate-500">
+            <Loader2 className="w-10 h-10 animate-spin text-primary-500" />
+            <p className="text-sm">Verifying your payment…</p>
           </div>
-        </motion.div>
-      </div>
+        </div>
+      ) : (
+        <div className="min-h-[70vh] flex items-center justify-center py-12">
+          <motion.div
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            className="w-full max-w-md mx-auto px-4"
+          >
+            <div className="bg-white rounded-3xl shadow-soft-xl border border-slate-200/60 overflow-hidden text-center">
+              {/* Success Icon */}
+              <div className="pt-10 pb-6">
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
+                  className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto"
+                >
+                  <CheckCircle2 className="w-9 h-9 text-emerald-600" />
+                </motion.div>
+                <h1 className="font-display text-2xl font-bold text-slate-900 mt-4">
+                  Payment Successful!
+                </h1>
+                <p className="text-slate-500 mt-1">Your appointment has been confirmed</p>
+              </div>
+
+              {/* Details */}
+              <div className="px-8 pb-8">
+                <div className="bg-slate-50 rounded-xl p-4 space-y-3 mb-6">
+                  {[
+                    { icon: FileText, label: 'Transaction ID', value: txnId || 'N/A' },
+                    { icon: CreditCard, label: 'Amount Paid', value: `₹${amount || '0'}` },
+                    { icon: User, label: 'Patient', value: patientName || 'N/A' },
+                    { icon: Mail, label: 'Email', value: email || 'N/A' },
+                  ].map(item => (
+                    <div key={item.label} className="flex items-center justify-between text-sm">
+                      <span className="flex items-center gap-2 text-slate-500">
+                        <item.icon className="w-4 h-4" />
+                        {item.label}
+                      </span>
+                      <span className="font-medium text-slate-900 truncate ml-4 max-w-[180px]">{item.value}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Notification */}
+                <div className="flex items-center gap-3 p-3 bg-primary-50 rounded-xl text-sm text-primary-700 mb-6">
+                  <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+                  Confirmation email sent to {email || 'your email'}
+                </div>
+
+                {/* Actions */}
+                <div className="space-y-3">
+                  <button onClick={downloadReceipt} className="btn-primary w-full justify-center">
+                    <Download className="w-4 h-4" />
+                    Download Receipt
+                  </button>
+                  <Link to="/profile" className="btn-outline w-full justify-center">
+                    <Calendar className="w-4 h-4" />
+                    View My Appointments
+                  </Link>
+                  <Link to="/" className="btn-ghost w-full justify-center">
+                    <Home className="w-4 h-4" />
+                    Back to Home
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </>
   )
 }

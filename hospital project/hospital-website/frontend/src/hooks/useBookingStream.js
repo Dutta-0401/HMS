@@ -12,22 +12,16 @@ export function useBookingStream(hospitalId, onNewBooking, onBookingUpdated) {
     }
 
     const API_URL = import.meta.env.VITE_REACT_APP_API_URL || 'http://localhost:8080/api'
-    const sseUrl = `${API_URL}/sse/bookings/${hospitalId}`
+    // Browser EventSource does not support custom headers — the Authorization
+    // option below would be silently ignored. Pass the token as a query param
+    // so the backend can authenticate the SSE connection.
+    const sseUrl = `${API_URL}/sse/bookings/${hospitalId}?token=${encodeURIComponent(token)}`
 
-    console.log('Connecting to SSE stream:', sseUrl)
+    const eventSource = new EventSource(sseUrl)
 
-    const eventSource = new EventSource(sseUrl, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-
-    eventSource.addEventListener('connected', (event) => {
-      console.log('Connected to booking stream:', event.data)
-    })
+    eventSource.addEventListener('connected', () => {})
 
     eventSource.addEventListener('new-booking', (event) => {
-      console.log('Received new booking:', event.data)
       try {
         const booking = JSON.parse(event.data)
         if (onNewBooking) {
@@ -39,7 +33,6 @@ export function useBookingStream(hospitalId, onNewBooking, onBookingUpdated) {
     })
 
     eventSource.addEventListener('booking-updated', (event) => {
-      console.log('Received booking update:', event.data)
       try {
         const booking = JSON.parse(event.data)
         if (onBookingUpdated) {
@@ -50,16 +43,9 @@ export function useBookingStream(hospitalId, onNewBooking, onBookingUpdated) {
       }
     })
 
-    eventSource.onerror = (error) => {
-      console.warn('SSE connection error:', error)
-      if (eventSource.readyState === EventSource.CLOSED) {
-        console.log('SSE connection closed, will reconnect...')
-      }
-    }
+    eventSource.onerror = () => {}
 
-    // Cleanup on unmount
     return () => {
-      console.log('Closing SSE connection')
       eventSource.close()
     }
   }, [hospitalId, onNewBooking, onBookingUpdated])

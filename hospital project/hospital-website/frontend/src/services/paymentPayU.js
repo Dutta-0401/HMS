@@ -1,8 +1,19 @@
 import crypto from 'crypto-js'
 
-// PayU test credentials (from environment or hardcoded for demo)
-const PAYU_MID = import.meta.env.VITE_PAYU_MID || '13411988'
-const PAYU_SALT = import.meta.env.VITE_PAYU_SALT || 'xzfQiBqnkHJ8xobmcxq2yxc5CIm60atm'
+// PayU credentials — MUST be set via environment variables.
+// Never hard-code the SALT: it is a signing secret. If it leaks, attackers
+// can forge payment hashes for arbitrary amounts.
+const PAYU_MID = import.meta.env.VITE_PAYU_MID
+const PAYU_SALT = import.meta.env.VITE_PAYU_SALT
+
+if (!PAYU_MID || !PAYU_SALT) {
+  // Fail loudly in development so misconfiguration is caught early.
+  // In production the payment buttons will be disabled (see initiatePayUCheckout).
+  console.error(
+    '[PayU] VITE_PAYU_MID and VITE_PAYU_SALT environment variables are required. ' +
+    'Payment functionality is disabled until they are set.'
+  )
+}
 const PAYU_TEST_URL = 'https://test.payumoney.com/mweb/'
 const PAYU_PROD_URL = 'https://secure.payumoney.com/mweb/'
 
@@ -18,7 +29,9 @@ const PAYU_URL = import.meta.env.VITE_PAYU_ENV === 'production' ? PAYU_PROD_URL 
  * PayU requires: hash = SHA512(salt + key + txnid + amount + productinfo + firstname + email)
  */
 export const generatePayUHash = (txnId, amount, productInfo, firstName, email) => {
-  // Build the string to be hashed (salt + key + rest of params in order)
+  if (!PAYU_SALT || !PAYU_MID) {
+    throw new Error('Payment gateway is not configured. Contact support.')
+  }
   const hashString = `${PAYU_SALT}|${PAYU_MID}|${txnId}|${amount}|${productInfo}|${firstName}|${email}`
 
   // Generate SHA512 hash using crypto-js
@@ -32,6 +45,9 @@ export const generatePayUHash = (txnId, amount, productInfo, firstName, email) =
  * In real mode: Creates a form and submits it to PayU's hosted checkout page
  */
 export const initiatePayUCheckout = (paymentDetails) => {
+  if (!PAYU_MID || !PAYU_SALT) {
+    throw new Error('Payment gateway is not configured. Contact support.')
+  }
   const {
     txnId,
     amount,
@@ -150,21 +166,23 @@ const simulatePayUCheckout = (paymentDetails) => {
 }
 
 /**
- * Verify PayU payment response (server-side ideally, but can do client-side for demo)
- * This should be called after PayU redirects back with payment response
+ * Payment response verification MUST happen server-side.
+ * The client cannot verify a hash when the SALT lives in the same JS bundle —
+ * an attacker can read the SALT and forge any response hash they like.
+ *
+ * Pass the raw PayU callback params to POST /api/payments/verify on your
+ * backend, which holds the SALT in a secure environment variable and returns
+ * { verified: true, appointmentId } or an error.
+ *
+ * @deprecated Do not call this function. It is a no-op kept only to avoid
+ *             breaking any existing callers while the backend endpoint is wired up.
  */
-export const verifyPayUResponse = (response) => {
-  // response should contain: status, txnid, amount, hash, etc.
-  if (!response || !response.hash) {
-    return false
-  }
-
-  // Reconstruct the hash to verify
-  const verificationString = `${PAYU_SALT}|${response.status}|${response.txnid}|${response.amount}|${response.productinfo}|${response.firstname}|${response.email}`
-  const expectedHash = crypto.SHA512(verificationString).toString()
-
-  // Compare hashes
-  return response.hash === expectedHash
+export const verifyPayUResponse = (_response) => {
+  console.error(
+    '[PayU] verifyPayUResponse() called on the client. ' +
+    'Payment verification must be performed server-side. This call is a no-op.'
+  )
+  return false
 }
 
 export default {
