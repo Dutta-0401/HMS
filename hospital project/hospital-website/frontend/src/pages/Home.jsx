@@ -1,10 +1,10 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { 
+import {
   ArrowRight, Search, Shield, Clock, Star, Heart,
   Stethoscope, Calendar, Zap, Users, CheckCircle2,
-  Building2, Activity, ChevronRight
+  Building2, Activity, ChevronRight, Phone
 } from 'lucide-react'
 
 const fadeUp = {

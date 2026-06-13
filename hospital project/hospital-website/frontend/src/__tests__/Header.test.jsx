@@ -11,8 +11,8 @@ describe('Header', () => {
         <Header />
       </MemoryRouter>
     )
-    expect(screen.getByText(/CityHealth/i)).toBeInTheDocument()
-    expect(screen.getByText(/Login/i)).toBeInTheDocument()
+    expect(screen.getByText(/Health/i)).toBeInTheDocument()
+    expect(screen.getByText(/Sign in/i)).toBeInTheDocument()
   })
 
   it('shows profile when authenticated', () => {
