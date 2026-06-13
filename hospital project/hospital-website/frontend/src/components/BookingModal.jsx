@@ -63,19 +63,14 @@ export default function BookingModal({ doctor, slot, selectedDate, onClose, onBo
       if (paymentMethod === 'payu') {
         try {
           const user = JSON.parse(localStorage.getItem('user') || '{}')
-          const paymentDetails = {
-            txnId: `${res.appointmentId}-${Date.now()}`,
-            amount: res.amount || 500,
-            productInfo: `Doctor Consultation - ${doctor.name}`,
+          // Pass only identity fields — amount is read from the DB on the server.
+          // txnId is also generated server-side so the client cannot tamper with it.
+          await initiatePayUCheckout({
+            appointmentId: res.appointmentId,
             firstName: user.name || 'Patient',
             email: user.email || 'patient@cityhealth.com',
-            phone: user.phone || '9999999999',
-            address: 'Clinic Address',
-            city: doctor.hospital_city || 'City',
-            state: 'State',
-            zipcode: '000000',
-          }
-          initiatePayUCheckout(paymentDetails)
+            phone: (user.phone || '9999999999').replace(/\D/g, ''),
+          })
           setTimeout(() => {
             onBooked(res)
             onClose()

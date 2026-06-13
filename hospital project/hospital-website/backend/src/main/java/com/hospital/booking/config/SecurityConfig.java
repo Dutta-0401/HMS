@@ -59,7 +59,7 @@ public class SecurityConfig {
                                 "/v3/api-docs/**"
                         ).permitAll()
                         // Protected endpoints
-                        .requestMatchers("/api/bookings/**", "/api/users/**", "/api/sse/**").authenticated()
+                        .requestMatchers("/api/bookings/**", "/api/users/**", "/api/sse/**", "/api/payments/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 // Security headers
