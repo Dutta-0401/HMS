@@ -1,0 +1,53 @@
+spring:
+  config:
+    import: optional:file:.env[.properties]
+  application:
+    name: hospital-booking-api
+  data:
+    mongodb:
+      # Defaults to a local MongoDB on this machine. Override MONGODB_URI in
+      # production with your Atlas/managed connection string (never commit it).
+      uri: ${MONGODB_URI:mongodb://localhost:27017/hospitaldb}
+      database: ${MONGODB_DATABASE:hospitaldb}
+      auto-index-creation: true
+
+server:
+  port: ${PORT:5000}
+
+jwt:
+  # Override JWT_SECRET in production with a strong secret (>= 256 bits).
+  # The default below is for local development only.
+  secret: ${JWT_SECRET:local-dev-secret-key-change-in-production-min-256-bits-required-0123456789}
+  expiration: ${JWT_EXPIRATION:86400000}
+
+cors:
+  allowed-origins: ${CORS_ORIGINS:http://localhost:5173,http://localhost:3000}
+
+logging:
+  level:
+    com.hospital: ${LOG_LEVEL:INFO}
+    org.springframework.data.mongodb: WARN
+    org.springframework.security: WARN
+
+springdoc:
+  api-docs:
+    path: /api-docs
+    enabled: ${SWAGGER_ENABLED:true}
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: ${SWAGGER_ENABLED:true}
+
+twilio:
+  account-sid: ${TWILIO_ACCOUNT_SID:your_account_sid}
+  auth-token: ${TWILIO_AUTH_TOKEN:your_auth_token}
+  phone-number: ${TWILIO_PHONE_NUMBER:your_twilio_number}
+  verify-service-sid: ${TWILIO_VERIFY_SERVICE_SID:your_verify_service_sid}
+  country-code: ${TWILIO_COUNTRY_CODE:+91}
+
+payu:
+  # Set PAYU_MID and PAYU_SALT as Railway env vars — never commit real credentials.
+  # PAYU_MOCK_ENABLED=false turns off the test dialog and submits to real PayU.
+  mid: ${PAYU_MID:}
+  salt: ${PAYU_SALT:}
+  env: ${PAYU_ENV:test}
+  mock-enabled: ${PAYU_MOCK_ENABLED:true}
