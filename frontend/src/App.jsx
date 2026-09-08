@@ -37,7 +37,7 @@ export default function App() {
                      location.pathname.startsWith('/hospitals/')
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col">
+    <div className="min-h-screen bg-paper text-ink flex flex-col">
       <Header />
       <main className="flex-1">
         <AnimatePresence mode="wait">

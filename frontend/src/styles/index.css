@@ -1,0 +1,190 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-paper text-ink font-sans antialiased;
+  }
+
+  /* Serif display for major headings = the editorial signature */
+  .font-display {
+    font-family: 'Fraunces', Georgia, serif;
+    font-optical-sizing: auto;
+  }
+
+  *:focus-visible {
+    @apply outline-2 outline-offset-2 outline-primary-600 rounded;
+  }
+}
+
+@layer components {
+  .container-custom {
+    @apply max-w-6xl mx-auto px-5 sm:px-6 lg:px-8;
+  }
+
+  /* ── Eyebrow label ── */
+  .eyebrow {
+    @apply inline-flex items-center gap-2 text-xs font-medium uppercase tracking-[0.18em] text-slate-500;
+  }
+
+  /* ── Card ── */
+  .card {
+    @apply bg-white rounded-xl border border-slate-200 shadow-card
+           transition-all duration-200 ease-out-expo;
+  }
+
+  .card-hover {
+    @apply card hover:shadow-card-hover hover:-translate-y-0.5 hover:border-slate-300;
+  }
+
+  .card-interactive {
+    @apply card-hover cursor-pointer active:translate-y-0;
+  }
+
+  /* ── Buttons (ink-first) ── */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 font-medium
+           rounded-lg transition-all duration-200 ease-out-expo
+           focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-paper
+           active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed
+           disabled:active:scale-100;
+  }
+
+  .btn-primary {
+    @apply btn bg-ink text-paper px-5 py-2.5
+           hover:bg-ink-soft focus:ring-ink;
+  }
+
+  .btn-primary-sm {
+    @apply btn bg-ink text-paper px-4 py-2 text-sm
+           hover:bg-ink-soft focus:ring-ink;
+  }
+
+  /* Teal accent button — reserved for rare moments */
+  .btn-accent {
+    @apply btn bg-primary-700 text-white px-5 py-2.5
+           hover:bg-primary-800 focus:ring-primary-700;
+  }
+
+  .btn-emerald {
+    @apply btn bg-emerald-600 text-white px-5 py-2.5
+           hover:bg-emerald-700 focus:ring-emerald-600;
+  }
+
+  .btn-outline {
+    @apply btn border border-ink/20 text-ink bg-transparent px-5 py-2.5
+           hover:border-ink/40 hover:bg-ink/[0.03]
+           focus:ring-ink;
+  }
+
+  .btn-ghost {
+    @apply btn text-slate-600 px-4 py-2
+           hover:bg-slate-100 hover:text-ink
+           focus:ring-slate-400;
+  }
+
+  .btn-danger {
+    @apply btn bg-red-700 text-white px-5 py-2.5
+           hover:bg-red-800 focus:ring-red-700;
+  }
+
+  /* ── Inputs ── */
+  .input {
+    @apply w-full px-4 py-2.5 rounded-lg bg-white border border-slate-300
+           text-ink placeholder-slate-400
+           transition-colors duration-200
+           focus:outline-none focus:border-primary-600 focus:ring-2 focus:ring-primary-600/15;
+  }
+
+  .input-label {
+    @apply block text-sm font-medium text-ink mb-1.5;
+  }
+
+  /* ── Badges ── */
+  .badge {
+    @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium;
+  }
+
+  .badge-primary {
+    @apply badge bg-primary-50 text-primary-700 ring-1 ring-primary-100;
+  }
+
+  .badge-emerald {
+    @apply badge bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100;
+  }
+
+  .badge-amber {
+    @apply badge bg-amber-50 text-amber-700 ring-1 ring-amber-100;
+  }
+
+  .badge-red {
+    @apply badge bg-red-50 text-red-700 ring-1 ring-red-100;
+  }
+
+  .badge-slate {
+    @apply badge bg-slate-100 text-slate-600 ring-1 ring-slate-200;
+  }
+
+  /* ── Loading skeleton ── */
+  .skeleton {
+    @apply rounded-lg bg-slate-100 animate-pulse;
+  }
+
+  /* ── Divider ── */
+  .divider {
+    @apply border-t border-slate-200;
+  }
+
+  /* ── Section spacing ── */
+  .section {
+    @apply py-16 md:py-24;
+  }
+
+  .section-sm {
+    @apply py-10 md:py-16;
+  }
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-300 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-slate-400;
+}
+
+/* ── Selection ── */
+::selection {
+  @apply bg-primary-100 text-primary-900;
+}
+
+/* ── Respect reduced-motion preference ── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
