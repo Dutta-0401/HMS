@@ -1,10 +1,11 @@
 import React from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { 
-  XCircle, ArrowRight, Home, Phone, Mail, 
+import {
+  XCircle, ArrowRight, Home, Phone, Mail,
   AlertTriangle, RefreshCw
 } from 'lucide-react'
+import FindHospitalLink from '../components/FindHospitalLink'
 
 export default function BookingFailure() {
   const [searchParams] = useSearchParams()
@@ -69,10 +70,10 @@ export default function BookingFailure() {
 
             {/* Actions */}
             <div className="space-y-3">
-              <Link to="/hospitals" className="btn-primary w-full justify-center">
+              <FindHospitalLink to="/hospitals" className="btn-primary w-full justify-center">
                 <RefreshCw className="w-4 h-4" />
                 Try Booking Again
-              </Link>
+              </FindHospitalLink>
               <Link to="/" className="btn-outline w-full justify-center">
                 <Home className="w-4 h-4" />
                 Back to Home

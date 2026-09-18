@@ -45,9 +45,16 @@ export default function Header() {
     setIsProfileOpen(false)
   }
 
+  function goToHospitals(e) {
+    if (token) return // authenticated: let the Link navigate
+    e.preventDefault()
+    navigate('/login', { state: { from: '/hospitals' } })
+    setIsMobileMenuOpen(false)
+  }
+
   const navLinks = [
     { path: '/', label: 'Home', icon: Home },
-    { path: '/hospitals', label: 'Hospitals', icon: Building2 },
+    { path: '/hospitals', label: 'Hospitals', icon: Building2, gated: true },
   ]
 
   const isActive = (path) => location.pathname === path
@@ -82,6 +89,7 @@ export default function Header() {
                   <Link
                     key={link.path}
                     to={link.path}
+                    onClick={link.gated ? goToHospitals : undefined}
                     className={`px-3.5 py-2 rounded-lg text-sm font-medium transition-colors
                               flex items-center gap-2 ${
                       active
@@ -211,6 +219,7 @@ export default function Header() {
                     >
                       <Link
                         to={link.path}
+                        onClick={link.gated ? goToHospitals : undefined}
                         className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${
                           isActive(link.path)
                             ? 'bg-primary-50 text-primary-700 font-medium'

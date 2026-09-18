@@ -13,6 +13,7 @@ import BookingFailure from './pages/BookingFailure'
 import Header from './components/Header'
 import Footer from './components/Footer'
 import Chatbot from './components/Chatbot'
+import RequireAuth from './components/RequireAuth'
 
 function requireAuth() {
   return localStorage.getItem('token')
@@ -55,14 +56,14 @@ export default function App() {
             <Route path="/hospitals" element={
               <PageTransition>
                 <div className="container-custom py-8">
-                  <Hospitals />
+                  <RequireAuth><Hospitals /></RequireAuth>
                 </div>
               </PageTransition>
             } />
             <Route path="/hospitals/:id" element={
               <PageTransition>
                 <div className="container-custom py-8">
-                  <HospitalDetail />
+                  <RequireAuth><HospitalDetail /></RequireAuth>
                 </div>
               </PageTransition>
             } />

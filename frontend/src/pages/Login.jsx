@@ -1,14 +1,16 @@
 import React, { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
   Mail, Lock, User, Phone, Eye, EyeOff, ArrowRight,
-  Heart, AlertCircle, Loader2, ChevronLeft
+  Heart, AlertCircle, Loader2, ChevronLeft, MapPin
 } from 'lucide-react'
 import { login, register } from '../services/auth'
 
 export default function Login() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const from = location.state?.from || '/hospitals'
   const [isLogin, setIsLogin] = useState(true)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -28,7 +30,7 @@ export default function Login() {
     setError(null)
     try {
       await login(loginData.email, loginData.password)
-      navigate('/hospitals')
+      navigate(from, { replace: true })
     } catch (err) {
       setError(err.message || 'Login failed')
     } finally {
@@ -50,7 +52,7 @@ export default function Login() {
     setError(null)
     try {
       await register(registerData)
-      navigate('/hospitals')
+      navigate(from, { replace: true })
     } catch (err) {
       setError(err.message || 'Registration failed')
     } finally {
@@ -99,6 +101,12 @@ export default function Login() {
                 : 'Join CityHealth to book appointments'
               }
             </p>
+            {location.state?.from && (
+              <div className="mt-4 flex items-start gap-2.5 p-3 bg-primary-50 border border-primary-100 rounded-xl text-primary-800 text-sm">
+                <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                <span>Sign in to find hospitals near you — we'll ask for your location right after so we can show what's closest.</span>
+              </div>
+            )}
           </div>
 
           {/* Toggle */}

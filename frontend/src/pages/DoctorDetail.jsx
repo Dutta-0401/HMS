@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { useParams, useNavigate, Link } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
   ArrowLeft, Star, Award, Clock, MapPin, Stethoscope,
@@ -9,6 +9,7 @@ import {
 import { getDoctor, getSlots } from '../services/booking'
 import SlotGrid from '../components/SlotGrid'
 import BookingModal from '../components/BookingModal'
+import FindHospitalLink from '../components/FindHospitalLink'
 import dayjs from 'dayjs'
 
 function BookingStepper({ currentStep }) {
@@ -145,9 +146,9 @@ export default function DoctorDetail() {
       <div className="text-center py-20">
         <Stethoscope className="w-16 h-16 text-slate-200 mx-auto mb-4" />
         <h2 className="font-display text-2xl font-bold text-slate-900 mb-2">Doctor Not Found</h2>
-        <Link to="/hospitals" className="btn-primary mt-4">
+        <FindHospitalLink to="/hospitals" className="btn-primary mt-4">
           <ArrowLeft className="w-4 h-4" /> Find Doctors
-        </Link>
+        </FindHospitalLink>
       </div>
     )
   }

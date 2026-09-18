@@ -2,10 +2,12 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { MapPin, Star, Users, ArrowRight, Building2 } from 'lucide-react'
+import { formatDistance } from '../utils/geo'
 
-export default function HospitalCard({ hospital, viewMode = 'grid' }) {
+export default function HospitalCard({ hospital, viewMode = 'grid', distanceKm = null }) {
   const rating = (4 + (hospital.id?.charCodeAt(0) % 10) / 10).toFixed(1)
-  const distance = (1 + (hospital.id?.charCodeAt(0) % 15)).toFixed(1)
+  const fallbackDistance = (1 + (hospital.id?.charCodeAt(0) % 15)).toFixed(1)
+  const distanceLabel = distanceKm != null ? formatDistance(distanceKm) : `${fallbackDistance} km`
   const specialties = hospital.specialties || []
   const doctorCount = hospital.doctorCount || specialties.length * 3
 
@@ -36,6 +38,11 @@ export default function HospitalCard({ hospital, viewMode = 'grid' }) {
                 <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
                 {rating}
               </span>
+              {distanceKm != null && (
+                <span className="flex items-center gap-1 text-primary-700 font-medium">
+                  {distanceLabel} away
+                </span>
+              )}
             </div>
             <div className="flex items-center gap-2 mt-2">
               {specialties.slice(0, 3).map((s, i) => (
@@ -64,7 +71,7 @@ export default function HospitalCard({ hospital, viewMode = 'grid' }) {
             <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
             {rating}
             <span className="text-slate-300">·</span>
-            {distance} km
+            {distanceLabel}
           </div>
         </div>
 

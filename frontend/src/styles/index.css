@@ -86,6 +86,12 @@
            focus:ring-ink;
   }
 
+  .btn-outline-sm {
+    @apply btn border border-ink/20 text-ink bg-transparent px-4 py-2 text-sm
+           hover:border-ink/40 hover:bg-ink/[0.03]
+           focus:ring-ink;
+  }
+
   .btn-ghost {
     @apply btn text-slate-600 px-4 py-2
            hover:bg-slate-100 hover:text-ink

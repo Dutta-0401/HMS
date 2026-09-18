@@ -2,6 +2,7 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowRight, ArrowUpRight, Calendar, Phone } from 'lucide-react'
+import FindHospitalLink from '../components/FindHospitalLink'
 
 const fadeUp = {
   initial: { opacity: 0, y: 10 },
@@ -41,10 +42,10 @@ function Hero() {
             </p>
 
             <div className="mt-9 flex flex-wrap items-center gap-5">
-              <Link to="/hospitals" className="btn-primary">
+              <FindHospitalLink to="/hospitals" className="btn-primary">
                 Find a doctor
                 <ArrowRight className="w-4 h-4" />
-              </Link>
+              </FindHospitalLink>
               <a href="#how-it-works" className="group inline-flex items-center gap-1.5 text-sm font-medium text-ink">
                 How it works
                 <ArrowUpRight className="w-4 h-4 text-primary-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
@@ -93,10 +94,10 @@ function Hero() {
                 ))}
               </div>
 
-              <Link to="/hospitals" className="btn-primary-sm w-full justify-center mt-5">
+              <FindHospitalLink to="/hospitals" className="btn-primary-sm w-full justify-center mt-5">
                 Book appointment
                 <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
+              </FindHospitalLink>
             </div>
           </motion.div>
         </div>
@@ -209,10 +210,10 @@ function HowItWorks() {
         </motion.div>
 
         <motion.div variants={fadeUp} initial="initial" whileInView="animate" viewport={{ once: true }} className="mt-10">
-          <Link to="/hospitals" className="btn-primary">
+          <FindHospitalLink to="/hospitals" className="btn-primary">
             Start booking
             <ArrowRight className="w-4 h-4" />
-          </Link>
+          </FindHospitalLink>
         </motion.div>
       </div>
     </section>
@@ -232,10 +233,10 @@ function CTA() {
               Join 50,000 people who stopped waiting on hold and started booking care online.
             </p>
             <div className="mt-9 flex flex-wrap items-center gap-5">
-              <Link to="/hospitals" className="btn bg-paper text-ink px-5 py-2.5 hover:bg-white">
+              <FindHospitalLink to="/hospitals" className="btn bg-paper text-ink px-5 py-2.5 hover:bg-white">
                 Find a doctor
                 <ArrowRight className="w-4 h-4" />
-              </Link>
+              </FindHospitalLink>
               <a href="tel:108" className="inline-flex items-center gap-2 text-sm font-medium text-paper/80 hover:text-paper transition-colors">
                 <Phone className="w-4 h-4" strokeWidth={1.5} />
                 Emergency: 108

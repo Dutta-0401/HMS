@@ -1,6 +1,7 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { Phone, Mail, MapPin, Facebook, Twitter, Instagram, Linkedin } from 'lucide-react'
+import FindHospitalLink from './FindHospitalLink'
 
 export default function Footer() {
   return (
@@ -44,8 +45,8 @@ export default function Footer() {
           <div>
             <h3 className="font-semibold text-sm uppercase tracking-wider text-slate-300 mb-4">Services</h3>
             <ul className="space-y-2.5 text-sm text-slate-400">
-              <li><Link to="/hospitals" className="hover:text-white transition-colors">Find Hospitals</Link></li>
-              <li><Link to="/hospitals" className="hover:text-white transition-colors">Book Appointments</Link></li>
+              <li><FindHospitalLink to="/hospitals" className="hover:text-white transition-colors">Find Hospitals</FindHospitalLink></li>
+              <li><FindHospitalLink to="/hospitals" className="hover:text-white transition-colors">Book Appointments</FindHospitalLink></li>
               <li><Link to="/" className="hover:text-white transition-colors">Health Records</Link></li>
               <li><Link to="/" className="hover:text-white transition-colors">Insurance</Link></li>
             </ul>
