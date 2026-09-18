@@ -3,6 +3,7 @@ package com.hospital.booking.service;
 import com.hospital.booking.dto.HospitalDTO;
 import com.hospital.booking.entity.Hospital;
 import com.hospital.booking.exception.ResourceNotFoundException;
+import com.hospital.booking.repository.DoctorRepository;
 import com.hospital.booking.repository.HospitalRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,6 +16,7 @@ import java.util.stream.Collectors;
 public class HospitalService {
 
     private final HospitalRepository hospitalRepository;
+    private final DoctorRepository doctorRepository;
 
     public List<HospitalDTO> getAllHospitals() {
         return hospitalRepository.findAll().stream()
@@ -44,6 +46,7 @@ public class HospitalService {
                 .email(hospital.getEmail())
                 .imageUrl(hospital.getImageUrl())
                 .specialties(hospital.getSpecialties())
+                .doctorCount((int) doctorRepository.countByHospitalId(hospital.getId()))
                 .build();
     }
 }

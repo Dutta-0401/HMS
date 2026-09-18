@@ -10,6 +10,8 @@ import java.util.List;
 public interface DoctorRepository extends MongoRepository<Doctor, String> {
     
     List<Doctor> findByHospitalId(String hospitalId);
+
+    long countByHospitalId(String hospitalId);
     
     List<Doctor> findBySpecialty(String specialty);
 }

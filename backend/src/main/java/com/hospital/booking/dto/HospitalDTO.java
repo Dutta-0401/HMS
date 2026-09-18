@@ -20,4 +20,6 @@ public class HospitalDTO {
     private String email;
     private String imageUrl;
     private List<String> specialties;
+    /** Real number of doctors linked to this hospital (counted server-side). */
+    private int doctorCount;
 }

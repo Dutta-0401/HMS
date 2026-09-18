@@ -8,8 +8,10 @@ export default function HospitalCard({ hospital, viewMode = 'grid', distanceKm =
   const rating = (4 + (hospital.id?.charCodeAt(0) % 10) / 10).toFixed(1)
   const fallbackDistance = (1 + (hospital.id?.charCodeAt(0) % 15)).toFixed(1)
   const distanceLabel = distanceKm != null ? formatDistance(distanceKm) : `${fallbackDistance} km`
+  // Real doctor count from the API (counted server-side). Falls back to 0 —
+  // never invent a number when the field is missing.
+  const doctorCount = hospital.doctorCount ?? 0
   const specialties = hospital.specialties || []
-  const doctorCount = hospital.doctorCount || specialties.length * 3
 
   if (viewMode === 'list') {
     return (
