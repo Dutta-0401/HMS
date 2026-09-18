@@ -14,7 +14,7 @@ services:
     dockerContext: ./backend
     plan: free
     region: oregon
-    branch: main
+    branch: master
     autoDeploy: true
     healthCheckPath: /actuator/health
     envVars:
