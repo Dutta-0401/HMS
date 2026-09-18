@@ -38,8 +38,9 @@ public class PaymentController {
     @Value("${payu.mock-enabled:true}")
     private boolean mockEnabled;
 
-    private static final String PAYU_TEST_URL = "https://test.payumoney.com/mweb/";
-    private static final String PAYU_PROD_URL  = "https://secure.payumoney.com/mweb/";
+    // PayU endpoints (payumoney.com hosts are retired - use payu.in)
+    private static final String PAYU_TEST_URL = "https://test.payu.in/_payment";
+    private static final String PAYU_PROD_URL  = "https://secure.payu.in/_payment";
 
     /**
      * Generates a PayU payment initiation payload with the hash computed server-side.
