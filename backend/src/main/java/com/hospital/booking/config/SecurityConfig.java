@@ -105,6 +105,17 @@ public class SecurityConfig {
         configuration.setMaxAge(3600L); // Cache preflight for 1 hour
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        // PayU return-URL posts to /api/payments/callback as a top-level form
+        // POST carrying PayU's own Origin header (test.payu.in / secure.payu.in).
+        // That is not fetch/XHR, so it needs no CORS protection — without this
+        // explicit permit, the strict global policy below rejects it with
+        // 403 "Invalid CORS request" before the callback can verify the payment.
+        // Exact-path registration wins over "/**"; the global policy is unchanged.
+        CorsConfiguration payuCallbackConfiguration = new CorsConfiguration();
+        payuCallbackConfiguration.addAllowedOriginPattern("*");
+        payuCallbackConfiguration.setAllowedMethods(Arrays.asList("POST", "OPTIONS"));
+        payuCallbackConfiguration.addAllowedHeader("*");
+        source.registerCorsConfiguration("/api/payments/callback", payuCallbackConfiguration);
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
