@@ -33,9 +33,17 @@ export async function initiatePayUCheckout({ appointmentId, firstName, email, ph
 
 /**
  * Build and auto-submit a PayU-compatible HTML form.
- * surl/furl are added client-side because they are not part of the signed hash.
+ *
+ * surl/furl point at the BACKEND callback, not the SPA: PayU returns the
+ * shopper with an HTTP POST carrying form fields, which a static host
+ * (Vercel) rejects. The backend verifies the response hash and 302-redirects
+ * to /book-success or /book-failed with query params. surl/furl are not part
+ * of the signed hash, so adding them client-side is safe.
  */
 function submitPayUForm(data) {
+  const apiBase = api.defaults.baseURL || ''
+  const backendBase = apiBase.replace(/\/api\/?$/, '')
+  const callbackUrl = `${backendBase}/api/payments/callback`
   const form = document.createElement('form')
   form.method = 'POST'
   form.action = data.payuUrl
@@ -50,8 +58,8 @@ function submitPayUForm(data) {
     email: data.email,
     phone: data.phone,
     hash: data.hash,
-    surl: `${window.location.origin}/book-success`,
-    furl: `${window.location.origin}/book-failed`,
+    surl: callbackUrl,
+    furl: callbackUrl,
     service_provider: 'payu_paisa',
   }
 

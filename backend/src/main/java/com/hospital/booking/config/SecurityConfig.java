@@ -51,6 +51,8 @@ public class SecurityConfig {
                                 "/api/auth/**",
                                 "/api/hospitals/**",
                                 "/api/doctors/**",
+                                // PayU posts back here without a JWT (verified by response hash)
+                                "/api/payments/callback",
                                 // Actuator health checks (Render unauthenticated probes)
                                 "/actuator/health",
                                 "/actuator/info",

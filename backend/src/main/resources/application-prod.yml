@@ -81,3 +81,7 @@ payu:
   salt: ${PAYU_SALT}
   env: ${PAYU_ENV:production}
   mock-enabled: ${PAYU_MOCK_ENABLED:false}
+
+# PayU callback redirect target — must be set in Render (FRONTEND_URL).
+frontend:
+  url: ${FRONTEND_URL}

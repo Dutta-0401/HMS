@@ -51,3 +51,8 @@ payu:
   salt: ${PAYU_SALT:}
   env: ${PAYU_ENV:test}
   mock-enabled: ${PAYU_MOCK_ENABLED:true}
+
+# Where the PayU callback redirects the shopper after verifying payment.
+# Production: set FRONTEND_URL in Render to the Vercel app URL.
+frontend:
+  url: ${FRONTEND_URL:http://localhost:5173}

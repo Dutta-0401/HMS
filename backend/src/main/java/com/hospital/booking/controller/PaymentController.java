@@ -38,6 +38,9 @@ public class PaymentController {
     @Value("${payu.mock-enabled:true}")
     private boolean mockEnabled;
 
+    @Value("${frontend.url:http://localhost:5173}")
+    private String frontendUrl;
+
     // PayU endpoints (payumoney.com hosts are retired - use payu.in)
     private static final String PAYU_TEST_URL = "https://test.payu.in/_payment";
     private static final String PAYU_PROD_URL  = "https://secure.payu.in/_payment";
@@ -106,6 +109,61 @@ public class PaymentController {
     }
 
     /**
+     * PayU return-URL handler (surl/furl target).
+     *
+     * Why this exists: PayU sends the shopper back with an HTTP POST carrying
+     * form fields. A static SPA host (Vercel) cannot receive POSTs, so pointing
+     * surl/furl at the frontend yields a 405 error page. PayU posts here
+     * instead; we verify the response hash with the SALT, update the
+     * appointment, and 302-redirect the browser to the SPA with query params
+     * the receipt page already understands.
+     *
+     * Public (no JWT — PayU cannot authenticate). Tamper protection comes from
+     * the response-hash check plus the server-side amount comparison.
+     */
+    @PostMapping(value = "/callback", consumes = "application/x-www-form-urlencoded")
+    public ResponseEntity<Void> payuCallback(@RequestParam java.util.Map<String, String> params) {
+        String status = params.getOrDefault("status", "").trim().toLowerCase();
+        String txnid = params.getOrDefault("txnid", "").trim();
+        String receivedHash = params.getOrDefault("hash", "").trim();
+
+        String appointmentId = appointmentIdFromTxnid(txnid);
+        Appointment appointment = appointmentId != null
+                ? appointmentRepository.findById(appointmentId).orElse(null)
+                : null;
+
+        boolean ok = false;
+        if (appointment != null && !payuSalt.isBlank()) {
+            String expectedHash = computeResponseHash(
+                    params.getOrDefault("additionalCharges", ""),
+                    status, params.getOrDefault("udf1", ""), params.getOrDefault("udf2", ""),
+                    params.getOrDefault("udf3", ""), params.getOrDefault("udf4", ""),
+                    params.getOrDefault("udf5", ""), params.getOrDefault("email", ""),
+                    params.getOrDefault("firstname", ""), params.getOrDefault("productinfo", ""),
+                    params.getOrDefault("amount", ""), txnid);
+            // Amount must match the DB value — blocks price-tampering replays
+            boolean amountMatches = false;
+            try {
+                BigDecimal posted = new BigDecimal(params.getOrDefault("amount", "0"));
+                amountMatches = appointment.getAmount() != null
+                        && appointment.getAmount().setScale(2, RoundingMode.HALF_UP)
+                                .compareTo(posted.setScale(2, RoundingMode.HALF_UP)) == 0;
+            } catch (NumberFormatException ignored) {
+            }
+            ok = "success".equals(status)
+                    && receivedHash.equalsIgnoreCase(expectedHash)
+                    && amountMatches;
+        }
+
+        if (ok) {
+            appointment.setStatus(Appointment.AppointmentStatus.CONFIRMED);
+            appointmentRepository.save(appointment);
+            return redirect("/book-success", params, appointment);
+        }
+        return redirect("/book-failed", params, appointment);
+    }
+
+    /**
      * PayU request-hash format (SHA-512):
      *   key|txnid|amount|productinfo|firstname|email|udf1|udf2|udf3|udf4|udf5||||||SALT
      *
@@ -117,6 +175,76 @@ public class PaymentController {
                                String email, String salt) {
         String input = key + "|" + txnid + "|" + amount + "|" + productinfo + "|"
                 + firstname + "|" + email + "|||||||||||" + salt;
+        return sha512Hex(input);
+    }
+
+    /** txnid is built as {@code appointmentId + "-" + millis} in initiatePayment. */
+    static String appointmentIdFromTxnid(String txnid) {
+        if (txnid == null) return null;
+        int dash = txnid.lastIndexOf('-');
+        if (dash <= 0) return null;
+        return txnid.substring(0, dash);
+    }
+
+    /**
+     * PayU response-hash format (SHA-512, reverse order):
+     *   [additionalCharges|]SALT|status|||||||||||udf5|udf4|udf3|udf2|udf1|
+     *   email|firstname|productinfo|amount|txnid|key
+     * additionalCharges is present only for some modes (EMI/cashcard).
+     */
+    static String computeResponseHash(String additionalCharges, String status,
+                                      String udf1, String udf2, String udf3,
+                                      String udf4, String udf5, String email,
+                                      String firstname, String productinfo,
+                                      String amount, String txnid, String key,
+                                      String salt) {
+        String core = salt + "|" + status + "|||||||||||"
+                + udf5 + "|" + udf4 + "|" + udf3 + "|" + udf2 + "|" + udf1 + "|"
+                + email + "|" + firstname + "|" + productinfo + "|"
+                + amount + "|" + txnid + "|" + key;
+        String input = (additionalCharges != null && !additionalCharges.isBlank())
+                ? additionalCharges + "|" + core
+                : core;
+        return sha512Hex(input);
+    }
+
+    private String computeResponseHash(String additionalCharges, String status,
+                                       String udf1, String udf2, String udf3,
+                                       String udf4, String udf5, String email,
+                                       String firstname, String productinfo,
+                                       String amount, String txnid) {
+        return computeResponseHash(additionalCharges, status, udf1, udf2, udf3,
+                udf4, udf5, email, firstname, productinfo, amount, txnid,
+                payuMid, payuSalt);
+    }
+
+    private ResponseEntity<Void> redirect(String path,
+                                          java.util.Map<String, String> params,
+                                          Appointment appointment) {
+        String amount = appointment != null && appointment.getAmount() != null
+                ? appointment.getAmount().setScale(2, RoundingMode.HALF_UP).toPlainString()
+                : params.getOrDefault("amount", "0");
+        String query = "status=" + urlEncode(params.getOrDefault("status", ""))
+                + "&txnid=" + urlEncode(params.getOrDefault("txnid", ""))
+                + "&amount=" + urlEncode(amount)
+                + "&firstname=" + urlEncode(params.getOrDefault("firstname", ""))
+                + "&email=" + urlEncode(params.getOrDefault("email", ""))
+                + "&productinfo=" + urlEncode(params.getOrDefault("productinfo", ""));
+        String base = frontendUrl.endsWith("/") ? frontendUrl.substring(0, frontendUrl.length() - 1) : frontendUrl;
+        return ResponseEntity.status(302)
+                .header("Location", base + path + "?" + query)
+                .build();
+    }
+
+    private static String urlEncode(String value) {
+        try {
+            return java.net.URLEncoder.encode(value == null ? "" : value, StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
+    private static String sha512Hex(String input) {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-512");
             byte[] bytes = md.digest(input.getBytes(StandardCharsets.UTF_8));
