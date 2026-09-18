@@ -39,4 +39,15 @@ public class AppointmentController {
         }
         return ResponseEntity.ok(appointmentService.getUserAppointments(userId));
     }
+
+    /**
+     * The endpoint the frontend Profile page actually calls.
+     * Uses the JWT identity directly, so no user ID travels in the URL
+     * and there is nothing to enumerate.
+     */
+    @GetMapping("/appointments/my-appointments")
+    public ResponseEntity<List<AppointmentDTO>> getMyAppointments(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(appointmentService.getUserAppointments(userDetails.getUsername()));
+    }
 }
