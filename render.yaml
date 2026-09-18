@@ -1,0 +1,65 @@
+# Render Blueprint for Hospital Booking API (backend)
+# Dashboard flow: New > Blueprint > select repo > this file is auto-discovered at repo root.
+# Then set the secret env vars below (sync: false) in the dashboard - never commit real values.
+#
+# Alternatively, create a Web Service manually:
+#   Runtime: Docker | Dockerfile: backend/Dockerfile | Docker Context: backend/
+#   Health Check Path: /actuator/health
+
+services:
+  - type: web
+    name: hospital-booking-api
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    region: oregon
+    branch: main
+    autoDeploy: true
+    healthCheckPath: /actuator/health
+    envVars:
+      # Required - MUST be set in Render Dashboard (no defaults for secrets)
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false
+
+      # Optional - have defaults in application-prod.yml
+      - key: MONGODB_DATABASE
+        value: hospitaldb
+      - key: JWT_EXPIRATION
+        value: "86400000"
+      - key: LOG_LEVEL
+        value: INFO
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: SWAGGER_ENABLED
+        value: "false"
+
+      # Twilio (optional - for SMS OTP)
+      - key: TWILIO_ACCOUNT_SID
+        sync: false
+      - key: TWILIO_AUTH_TOKEN
+        sync: false
+      - key: TWILIO_PHONE_NUMBER
+        sync: false
+      - key: TWILIO_VERIFY_SERVICE_SID
+        sync: false
+      - key: TWILIO_COUNTRY_CODE
+        value: "+91"
+
+      # PayU (optional - for payments)
+      - key: PAYU_MID
+        sync: false
+      - key: PAYU_SALT
+        sync: false
+      - key: PAYU_ENV
+        value: production
+      - key: PAYU_MOCK_ENABLED
+        value: "false"
+
+      # Frontend URL for CORS (alternative to CORS_ORIGINS)
+      - key: FRONTEND_URL
+        sync: false

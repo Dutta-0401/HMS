@@ -23,7 +23,7 @@ public class BookingController {
     @PostMapping
     public ResponseEntity<Booking> createBooking(@RequestBody BookingRequest request) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String patientId = (String) auth.getPrincipal();
+        String patientId = auth.getName(); // Returns the username (userId) from UserDetails
         
         log.info("Creating booking for patient: {}", patientId);
         Booking booking = bookingService.createBooking(request, patientId);

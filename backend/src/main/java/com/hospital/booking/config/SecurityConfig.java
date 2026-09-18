@@ -50,7 +50,11 @@ public class SecurityConfig {
                                 "/api/health",
                                 "/api/auth/**",
                                 "/api/hospitals/**",
-                                "/api/doctors/**"
+                                "/api/doctors/**",
+                                // Actuator health checks (Render/Railway unauthenticated probes)
+                                "/actuator/health",
+                                "/actuator/info",
+                                "/health"
                         ).permitAll()
                         // Swagger - only in development (controlled by springdoc.enabled property)
                         .requestMatchers(

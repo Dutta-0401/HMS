@@ -42,7 +42,7 @@ public class SseEmitterService {
 
     public void broadcastBooking(Booking booking) {
         log.info("Broadcasting new booking to hospital: {}", booking.getHospitalId());
-        List<SseEmitter> targets = clients.getOrDefault(booking.getHospitalId(), List.of());
+        List<SseEmitter> targets = new ArrayList<>(clients.getOrDefault(booking.getHospitalId(), List.of()));
         List<SseEmitter> dead = new ArrayList<>();
 
         for (SseEmitter e : targets) {
@@ -62,7 +62,7 @@ public class SseEmitterService {
 
     public void broadcastBookingUpdate(Booking booking) {
         log.info("Broadcasting booking update to hospital: {}", booking.getHospitalId());
-        List<SseEmitter> targets = clients.getOrDefault(booking.getHospitalId(), List.of());
+        List<SseEmitter> targets = new ArrayList<>(clients.getOrDefault(booking.getHospitalId(), List.of()));
         List<SseEmitter> dead = new ArrayList<>();
 
         for (SseEmitter e : targets) {
