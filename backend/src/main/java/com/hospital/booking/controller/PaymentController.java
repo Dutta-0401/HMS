@@ -44,7 +44,7 @@ public class PaymentController {
     /**
      * Generates a PayU payment initiation payload with the hash computed server-side.
      *
-     * The SALT is kept exclusively in the Railway environment — it is never sent
+     * The SALT is kept exclusively in the Render environment — it is never sent
      * to the browser. The frontend receives a ready-to-submit set of form fields.
      *
      * Amount is fetched from the database; the client-supplied value is ignored to

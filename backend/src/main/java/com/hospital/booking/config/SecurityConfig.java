@@ -51,7 +51,7 @@ public class SecurityConfig {
                                 "/api/auth/**",
                                 "/api/hospitals/**",
                                 "/api/doctors/**",
-                                // Actuator health checks (Render/Railway unauthenticated probes)
+                                // Actuator health checks (Render unauthenticated probes)
                                 "/actuator/health",
                                 "/actuator/info",
                                 "/health"

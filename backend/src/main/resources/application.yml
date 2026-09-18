@@ -45,7 +45,7 @@ twilio:
   country-code: ${TWILIO_COUNTRY_CODE:+91}
 
 payu:
-  # Set PAYU_MID and PAYU_SALT as Railway env vars — never commit real credentials.
+  # Set PAYU_MID and PAYU_SALT as Render env vars — never commit real credentials.
   # PAYU_MOCK_ENABLED=false turns off the test dialog and submits to real PayU.
   mid: ${PAYU_MID:}
   salt: ${PAYU_SALT:}

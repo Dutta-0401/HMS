@@ -25,7 +25,7 @@ A full-stack hospital appointment booking platform with AI-powered chatbot assis
 | Database | MongoDB Atlas |
 | Auth | JWT + Twilio SMS OTP |
 | Payments | PayU |
-| Deployment | Vercel (frontend), Railway (backend) |
+| Deployment | Vercel (frontend), Render (backend) |
 
 ## Project Structure
 
@@ -111,11 +111,11 @@ http://localhost:8080/swagger-ui.html
 
 Connected to GitHub — auto-deploys on push to `master`.
 
-### Backend (Railway)
+### Backend (Render)
 
-1. Connect GitHub repo
-2. Set environment variables in Railway dashboard
-3. Deploy from `backend/` directory
+1. Dashboard → New → Blueprint, select this repo (`render.yaml` at root)
+2. Set secret environment variables in Render dashboard (`MONGODB_URI`, `JWT_SECRET`, `CORS_ORIGINS`)
+3. Deploy (Docker build from `backend/`, health check `/actuator/health`)
 
 ## Contributing
 
