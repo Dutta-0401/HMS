@@ -34,7 +34,7 @@ public class AuthController {
     @GetMapping("/me")
     public ResponseEntity<UserDTO> getCurrentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String userId = (String) auth.getPrincipal();
+        String userId = auth.getName(); // Returns the username (userId) from UserDetails
         UserDTO user = authService.getCurrentUser(userId);
         return ResponseEntity.ok(user);
     }

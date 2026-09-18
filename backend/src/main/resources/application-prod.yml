@@ -1,0 +1,83 @@
+# Production profile configuration
+# Activated via: SPRING_PROFILES_ACTIVE=prod
+# All secrets come from environment variables - NOT committed to Git
+
+spring:
+  config:
+    import: optional:file:.env[.properties]
+  application:
+    name: hospital-booking-api
+  data:
+    mongodb:
+      # Production: Must be set via MONGODB_URI environment variable
+      # No localhost fallback in production
+      uri: ${MONGODB_URI}
+      database: ${MONGODB_DATABASE:hospitaldb}
+      auto-index-creation: true
+  # Disable devtools in production
+  devtools:
+    restart:
+      enabled: false
+    livereload:
+      enabled: false
+
+server:
+  # Render provides PORT environment variable
+  port: ${PORT:5000}
+  # Bind to all interfaces (required for Docker/Render)
+  address: 0.0.0.0
+
+jwt:
+  # Production: Must be set via JWT_SECRET environment variable (>= 256 bits)
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION:86400000}
+
+cors:
+  # Production: Use FRONTEND_URL or CORS_ORIGINS environment variable
+  # FRONTEND_URL takes precedence for single-origin deployments
+  allowed-origins: ${FRONTEND_URL:${CORS_ORIGINS}}
+
+logging:
+  level:
+    root: WARN
+    com.hospital: INFO
+    org.springframework.data.mongodb: WARN
+    org.springframework.security: WARN
+    org.springframework.web: WARN
+    org.hibernate: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+springdoc:
+  api-docs:
+    path: /api-docs
+    enabled: false
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true
+
+# Twilio - production values from environment
+twilio:
+  account-sid: ${TWILIO_ACCOUNT_SID}
+  auth-token: ${TWILIO_AUTH_TOKEN}
+  phone-number: ${TWILIO_PHONE_NUMBER}
+  verify-service-sid: ${TWILIO_VERIFY_SERVICE_SID}
+  country-code: ${TWILIO_COUNTRY_CODE:+91}
+
+# PayU - production values from environment
+payu:
+  mid: ${PAYU_MID}
+  salt: ${PAYU_SALT}
+  env: ${PAYU_ENV:production}
+  mock-enabled: ${PAYU_MOCK_ENABLED:false}

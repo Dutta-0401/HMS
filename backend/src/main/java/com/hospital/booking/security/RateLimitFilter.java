@@ -12,11 +12,16 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Rate limiting filter to prevent brute force attacks on authentication endpoints.
  * Limits requests per IP address within a time window.
+ * Uses a sliding window algorithm with background cleanup.
  */
 @Component
 @Slf4j
@@ -26,9 +31,27 @@ public class RateLimitFilter extends OncePerRequestFilter {
     private static final int MAX_REQUESTS_PER_MINUTE = 10;
     private static final int MAX_AUTH_REQUESTS_PER_MINUTE = 5;
     private static final long WINDOW_SIZE_MS = 60_000; // 1 minute
+    private static final long CLEANUP_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
 
-    // Store for tracking requests per IP
+    // Store for tracking requests per IP: key -> {windowStart, count}
     private final Map<String, RateLimitEntry> requestCounts = new ConcurrentHashMap<>();
+
+    // Scheduled executor for periodic cleanup
+    private final ScheduledExecutorService cleanupScheduler = Executors.newSingleThreadScheduledExecutor(r -> {
+        Thread t = new Thread(r, "rate-limit-cleanup");
+        t.setDaemon(true);
+        return t;
+    });
+
+    public RateLimitFilter() {
+        // Schedule periodic cleanup
+        cleanupScheduler.scheduleAtFixedRate(
+            this::cleanupOldEntries,
+            CLEANUP_INTERVAL_MS,
+            CLEANUP_INTERVAL_MS,
+            TimeUnit.MILLISECONDS
+        );
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -37,6 +60,12 @@ public class RateLimitFilter extends OncePerRequestFilter {
         
         String clientIp = getClientIp(request);
         String path = request.getRequestURI();
+
+        // Never rate-limit health probes (Render/Railway) or public health endpoint
+        if (isHealthEndpoint(path)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
         
         // Determine rate limit based on endpoint
         int maxRequests = isAuthEndpoint(path) ? MAX_AUTH_REQUESTS_PER_MINUTE : MAX_REQUESTS_PER_MINUTE;
@@ -57,6 +86,12 @@ public class RateLimitFilter extends OncePerRequestFilter {
         return path.startsWith("/api/auth/");
     }
 
+    private boolean isHealthEndpoint(String path) {
+        return path.equals("/api/health")
+                || path.equals("/health")
+                || path.startsWith("/actuator/");
+    }
+
     private String getClientIp(HttpServletRequest request) {
         // Check for forwarded headers (for proxies/load balancers)
         String xForwardedFor = request.getHeader("X-Forwarded-For");
@@ -73,37 +108,57 @@ public class RateLimitFilter extends OncePerRequestFilter {
         return request.getRemoteAddr();
     }
 
-    private synchronized boolean isRateLimited(String key, int maxRequests) {
+    private boolean isRateLimited(String key, int maxRequests) {
         long currentTime = System.currentTimeMillis();
         
-        // Clean up old entries periodically
-        if (currentTime % 10 == 0) {
-            cleanupOldEntries(currentTime);
-        }
+        RateLimitEntry entry = requestCounts.computeIfAbsent(key, k -> new RateLimitEntry(currentTime, new AtomicInteger(0)));
         
-        RateLimitEntry entry = requestCounts.get(key);
-        
-        if (entry == null || currentTime - entry.windowStart > WINDOW_SIZE_MS) {
-            // New window
-            requestCounts.put(key, new RateLimitEntry(currentTime, new AtomicInteger(1)));
-            return false;
+        // Check if we're in a new window
+        if (currentTime - entry.windowStart.get() > WINDOW_SIZE_MS) {
+            // Try to atomically move to new window
+            long oldWindow = entry.windowStart.get();
+            if (entry.windowStart.compareAndSet(oldWindow, currentTime)) {
+                // Successfully moved to new window, reset count
+                entry.count.set(1);
+                return false;
+            }
+            // Another thread already moved the window, fall through to increment
         }
         
         int currentCount = entry.count.incrementAndGet();
         return currentCount > maxRequests;
     }
 
-    private void cleanupOldEntries(long currentTime) {
-        requestCounts.entrySet().removeIf(entry -> 
-            currentTime - entry.getValue().windowStart > WINDOW_SIZE_MS * 2);
+    private void cleanupOldEntries() {
+        long currentTime = System.currentTimeMillis();
+        long cutoff = currentTime - WINDOW_SIZE_MS * 2;
+        
+        requestCounts.entrySet().removeIf(e -> e.getValue().windowStart.get() < cutoff);
+        
+        if (log.isDebugEnabled()) {
+            log.debug("Rate limit cleanup: {} entries remaining", requestCounts.size());
+        }
+    }
+
+    @Override
+    public void destroy() {
+        cleanupScheduler.shutdown();
+        try {
+            if (!cleanupScheduler.awaitTermination(5, TimeUnit.SECONDS)) {
+                cleanupScheduler.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            cleanupScheduler.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
     }
 
     private static class RateLimitEntry {
-        final long windowStart;
+        final AtomicLong windowStart;
         final AtomicInteger count;
 
         RateLimitEntry(long windowStart, AtomicInteger count) {
-            this.windowStart = windowStart;
+            this.windowStart = new AtomicLong(windowStart);
             this.count = count;
         }
     }
