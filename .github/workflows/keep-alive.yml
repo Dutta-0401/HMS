@@ -1,0 +1,30 @@
+# Keeps the Render free-tier backend from spinning down.
+# Render sleeps free web services after ~15 min without inbound traffic;
+# a light ping every 10 min keeps /actuator/health (public, no auth) warm
+# so users never hit a 30-60s cold start. Safe to delete if the service
+# moves to a paid (always-on) plan.
+name: Keep backend alive
+
+on:
+  schedule:
+    # Every 10 minutes (GitHub minimum granularity is 5)
+    - cron: '*/10 * * * *'
+  workflow_dispatch: # allow manual runs from the Actions tab
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Ping backend health endpoint
+        run: |
+          for i in 1 2 3; do
+            if curl -fsS -m 50 https://hospital-booking-api-ra77.onrender.com/actuator/health; then
+              echo "backend is up"
+              exit 0
+            fi
+            echo "attempt $i failed, retrying..."
+            sleep 10
+          done
+          echo "backend did not respond after 3 attempts"
+          exit 1
