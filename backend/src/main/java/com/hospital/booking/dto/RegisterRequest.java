@@ -17,4 +17,6 @@ public class RegisterRequest {
     private String phone;
     private User.UserRole role;
     private String hospitalId;  // Only for HOSPITAL_ADMIN
+    private String captchaToken;  // reCAPTCHA response token (verified server-side)
+    private String website;  // Honeypot — must stay empty (bots fill it)
 }

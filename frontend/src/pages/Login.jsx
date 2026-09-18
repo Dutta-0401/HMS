@@ -1,11 +1,14 @@
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import { useNavigate, Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { 
+import {
   Mail, Lock, User, Phone, Eye, EyeOff, ArrowRight,
-  Heart, AlertCircle, Loader2, ChevronLeft, MapPin
+  Heart, AlertCircle, Loader2, ChevronLeft, MapPin, ShieldCheck
 } from 'lucide-react'
+import ReCAPTCHA from 'react-google-recaptcha'
 import { login, register } from '../services/auth'
+
+const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY
 
 export default function Login() {
   const navigate = useNavigate()
@@ -19,6 +22,25 @@ export default function Login() {
   const [registerData, setRegisterData] = useState({ 
     name: '', email: '', phone: '', password: '' 
   })
+  // Bot defenses: reCAPTCHA token (one-time use) + honeypot field (humans leave empty)
+  const [captchaToken, setCaptchaToken] = useState(null)
+  const [website, setWebsite] = useState('')
+  const recaptchaRef = useRef(null)
+
+  function resetCaptcha() {
+    setCaptchaToken(null)
+    try {
+      recaptchaRef.current?.reset()
+    } catch { /* widget not mounted */ }
+  }
+
+  function requireCaptcha() {
+    if (RECAPTCHA_SITE_KEY && !captchaToken) {
+      setError('Please complete the "I\'m not a robot" check.')
+      return false
+    }
+    return true
+  }
 
   async function handleLogin(e) {
     e.preventDefault()
@@ -26,14 +48,16 @@ export default function Login() {
       setError('Please fill in all fields')
       return
     }
+    if (!requireCaptcha()) return
     setLoading(true)
     setError(null)
     try {
-      await login(loginData.email, loginData.password)
+      await login(loginData.email, loginData.password, { captchaToken, website })
       navigate(from, { replace: true })
     } catch (err) {
       setError(err.message || 'Login failed')
     } finally {
+      resetCaptcha()
       setLoading(false)
     }
   }
@@ -48,14 +72,16 @@ export default function Login() {
       setError('Password must be at least 6 characters')
       return
     }
+    if (!requireCaptcha()) return
     setLoading(true)
     setError(null)
     try {
-      await register(registerData)
+      await register({ ...registerData, captchaToken, website })
       navigate(from, { replace: true })
     } catch (err) {
       setError(err.message || 'Registration failed')
     } finally {
+      resetCaptcha()
       setLoading(false)
     }
   }
@@ -289,6 +315,34 @@ export default function Login() {
                 </motion.form>
               )}
             </AnimatePresence>
+
+            {/* Bot defenses: visible captcha + invisible honeypot */}
+            <div className="mt-2 flex flex-col items-center gap-2">
+              {RECAPTCHA_SITE_KEY ? (
+                <ReCAPTCHA
+                  ref={recaptchaRef}
+                  sitekey={RECAPTCHA_SITE_KEY}
+                  onChange={(token) => { setCaptchaToken(token); setError(null) }}
+                  onExpired={resetCaptcha}
+                />
+              ) : (
+                <p className="flex items-center gap-1.5 text-xs text-amber-600">
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  Bot verification unavailable — site key not configured.
+                </p>
+              )}
+              {/* Honeypot: hidden from humans, irresistible to bots */}
+              <div aria-hidden="true" style={{ position: 'absolute', left: '-9999px', opacity: 0, height: 0, overflow: 'hidden' }}>
+                <input
+                  type="text"
+                  name="website"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  value={website}
+                  onChange={e => setWebsite(e.target.value)}
+                />
+              </div>
+            </div>
 
             {/* Demo hint — only visible in development builds */}
             {isLogin && import.meta.env.DEV && (

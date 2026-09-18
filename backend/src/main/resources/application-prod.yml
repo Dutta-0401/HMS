@@ -85,3 +85,7 @@ payu:
 # PayU callback redirect target — must be set in Render (FRONTEND_URL).
 frontend:
   url: ${FRONTEND_URL}
+
+# Google reCAPTCHA secret — must be set in Render (RECAPTCHA_SECRET).
+recaptcha:
+  secret: ${RECAPTCHA_SECRET:}

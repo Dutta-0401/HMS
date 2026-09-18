@@ -12,4 +12,6 @@ import lombok.NoArgsConstructor;
 public class LoginRequest {
     private String email;
     private String password;
+    private String captchaToken;  // reCAPTCHA response token (verified server-side)
+    private String website;  // Honeypot — must stay empty (bots fill it)
 }

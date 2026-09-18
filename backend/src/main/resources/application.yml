@@ -56,3 +56,9 @@ payu:
 # Production: set FRONTEND_URL in Render to the Vercel app URL.
 frontend:
   url: ${FRONTEND_URL:http://localhost:5173}
+
+# Google reCAPTCHA (bot protection on sign in/up).
+# Get the secret at https://www.google.com/recaptcha/admin for your site key.
+# Production: set RECAPTCHA_SECRET in Render — without it the bot check is skipped.
+recaptcha:
+  secret: ${RECAPTCHA_SECRET:}

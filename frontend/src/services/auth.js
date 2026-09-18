@@ -8,7 +8,9 @@ export async function register(data) {
       password: data.password,
       phone: data.phone,
       role: data.role || 'PATIENT',
-      hospitalId: data.hospitalId || null
+      hospitalId: data.hospitalId || null,
+      captchaToken: data.captchaToken || null,
+      website: data.website || ''
     })
     
     if (response.data.token) {
@@ -22,11 +24,13 @@ export async function register(data) {
   }
 }
 
-export async function login(email, password) {
+export async function login(email, password, extra = {}) {
   try {
     const response = await api.post('/auth/login', {
       email,
-      password
+      password,
+      captchaToken: extra.captchaToken || null,
+      website: extra.website || ''
     })
     
     if (response.data.token) {

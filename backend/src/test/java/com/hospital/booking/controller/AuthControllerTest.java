@@ -5,12 +5,15 @@ import com.hospital.booking.dto.LoginRequest;
 import com.hospital.booking.dto.RegisterRequest;
 import com.hospital.booking.dto.UserDTO;
 import com.hospital.booking.service.AuthService;
+import com.hospital.booking.service.CaptchaService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.server.ResponseStatusException;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -21,12 +24,20 @@ class AuthControllerTest {
     @Mock
     private AuthService authService;
 
+    @Mock
+    private CaptchaService captchaService;
+
+    @Mock
+    private HttpServletRequest httpRequest;
+
     @InjectMocks
     private AuthController authController;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+        // Humans pass the bot check by default in these tests
+        when(captchaService.verify(any(), any())).thenReturn(true);
     }
 
     @Test
@@ -45,7 +56,7 @@ class AuthControllerTest {
 
         when(authService.register(any(RegisterRequest.class))).thenReturn(expectedResponse);
 
-        ResponseEntity<AuthResponse> responseEntity = authController.register(request);
+        ResponseEntity<AuthResponse> responseEntity = authController.register(request, httpRequest);
 
         assertEquals(200, responseEntity.getStatusCode().value());
         assertEquals("fake-token", responseEntity.getBody().getToken());
@@ -68,7 +79,7 @@ class AuthControllerTest {
 
         when(authService.login(any(LoginRequest.class))).thenReturn(expectedResponse);
 
-        ResponseEntity<AuthResponse> responseEntity = authController.login(request);
+        ResponseEntity<AuthResponse> responseEntity = authController.login(request, httpRequest);
 
         assertEquals(200, responseEntity.getStatusCode().value());
         assertEquals("fake-token", responseEntity.getBody().getToken());
@@ -93,5 +104,31 @@ class AuthControllerTest {
         // We'll skip this for now and focus on service unit test.
         // Alternatively, we can use @WebMvcTest and MockMvc.
         // Given time, we'll just test the service layer.
+    }
+
+    @Test
+    void testRegisterBlockedWhenHoneypotFilled() {
+        RegisterRequest request = new RegisterRequest();
+        request.setEmail("bot@example.com");
+        request.setPassword("password");
+        request.setName("Bot");
+        request.setWebsite("http://spam.example");
+
+        assertThrows(ResponseStatusException.class,
+                () -> authController.register(request, httpRequest));
+        verify(authService, never()).register(any());
+    }
+
+    @Test
+    void testLoginBlockedWhenCaptchaFails() {
+        when(captchaService.verify(any(), any())).thenReturn(false);
+        LoginRequest request = new LoginRequest();
+        request.setEmail("test@example.com");
+        request.setPassword("password");
+        request.setCaptchaToken("fake-token");
+
+        assertThrows(ResponseStatusException.class,
+                () -> authController.login(request, httpRequest));
+        verify(authService, never()).login(any());
     }
 }
