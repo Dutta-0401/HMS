@@ -61,7 +61,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
         String clientIp = getClientIp(request);
         String path = request.getRequestURI();
 
-        // Never rate-limit health probes (Render/Railway) or public health endpoint
+        // Never rate-limit health probes (Render) or public health endpoint
         if (isHealthEndpoint(path)) {
             filterChain.doFilter(request, response);
             return;
