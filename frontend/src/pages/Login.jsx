@@ -221,7 +221,7 @@ export default function Login() {
                         type="text"
                         value={registerData.name}
                         onChange={e => setRegisterData({ ...registerData, name: e.target.value })}
-                        placeholder="John Doe"
+                        placeholder="Your name"
                         className="input pl-11"
                       />
                     </div>
